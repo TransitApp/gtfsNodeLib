@@ -73,12 +73,15 @@ function copyUntouchedTable(inputPath, outputPath, tableName, callback) {
 function getActualKeysForTable(gtfs, tableName) {
   const keys = [...schema.keysByTableName[tableName]];
   const deepness = schema.deepnessByTableName[tableName];
-  let sampleItem = gtfs.getIndexedTable(tableName);
+  const table = gtfs.getIndexedTable(tableName);
+  let sampleItem;
 
-  if (deepness === 1) {
-    sampleItem = getSample(sampleItem);
+  if (deepness === 0) {
+    sampleItem = table;
+  } else if (deepness === 1) {
+    sampleItem = getSample(table);
   } else if (deepness === 2) {
-    sampleItem = getSample(getSample(sampleItem));
+    sampleItem = getSample(getSample(table));
   }
 
   if (sampleItem) {
