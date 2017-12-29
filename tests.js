@@ -6,13 +6,13 @@
 const { expect } = require('chai');
 const fs = require('fs-extra');
 
-const Gtfs = require('../properGtfsObject');
+const { Gtfs } = require('./index');
 
 // eslint-disable-next-line no-undef
 describe('Tests on GTFS', () => {
   // eslint-disable-next-line no-undef
   it('Test on meta functions', (done) => {
-    const path = `${__dirname}/gtfs_sample/`;
+    const path = `${__dirname}/sample/`;
     const gtfs = new Gtfs(path);
 
     expect(gtfs.isGtfs).to.equal(true);
@@ -23,7 +23,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Test on generic table functions', (done) => {
-    const path = `${__dirname}/gtfs_sample/`;
+    const path = `${__dirname}/sample/`;
     const gtfs = new Gtfs(path);
 
     const indexedAgencies = gtfs.getIndexedTable('agency');
@@ -80,7 +80,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on agencies', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedAgencies())).to.deep.equal(['agency_0']);
@@ -121,7 +121,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on stops', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedStops())).to.deep.equal(['stop_0', 'stop_1']);
@@ -164,7 +164,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on routes', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0']);
@@ -209,7 +209,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on trips', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedTrips())).to.deep.equal(['trip_0']);
@@ -250,7 +250,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on stop times', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedStopTimes())).to.deep.equal(['trip_0']);
@@ -314,7 +314,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on calendars', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedCalendars())).to.deep.equal(['service_0']);
@@ -359,7 +359,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on calendar dates', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedCalendarDates())).to.deep.equal(['service_0']);
@@ -420,7 +420,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on shapes', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedShapePoints())).to.deep.equal(['shape_0']);
@@ -477,7 +477,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on frequencies', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedFrequencies())).to.deep.equal(['trip_0']);
@@ -528,7 +528,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on transfers', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(sortedKeys(gtfs.getIndexedTransfers())).to.deep.equal(['stop_0', 'stop_1']);
@@ -581,7 +581,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on feed info', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     expect(gtfs.getFeedInfo().feed_lang).to.equal('en');
@@ -599,7 +599,7 @@ describe('Tests on GTFS', () => {
 
   // eslint-disable-next-line no-undef
   it('Tests on exporting', (done) => {
-    const path = `${__dirname}/gtfs_sample`;
+    const path = `${__dirname}/sample`;
     const gtfs = new Gtfs(path);
 
     gtfs.getFeedInfo().feed_lang = 'fr';

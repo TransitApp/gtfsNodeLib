@@ -45,11 +45,9 @@ function getRows(buffer, regexPatternObjectsByTableName, tableName) {
       regexPatternObjects.forEach((regexPatternObject) => {
         const modifiedRowsSlice = rowsSlice.replace(regexPatternObject.regex, regexPatternObject.pattern || '');
         if (modifiedRowsSlice !== rowsSlice) {
-          if (process.notices && process.notices.addInfo) {
-            process.notices.addInfo(
-              __filename, `Applying regex replace to table: "${tableName}". regex: "${regexPatternObject.regex}".`
-            );
-          }
+          process.notices.addInfo(
+            __filename, `Applying regex replace to table: "${tableName}". regex: "${regexPatternObject.regex}".`
+          );
           rowsSlice = modifiedRowsSlice;
         }
       });
@@ -92,9 +90,7 @@ function processRows(gtfs, tableName, indexKeys, rows) {
         }, {});
 
         if (sortedKeys.length !== arrayOfValues.length) {
-          if (process.notices && process.notices.addWarning) {
-            process.notices.addWarning(`Row not valid in table: ${JSON.stringify(item)}`);
-          }
+          process.notices.addWarning(__filename, `Row not valid in table: ${JSON.stringify(item)}`);
           return;
         }
 

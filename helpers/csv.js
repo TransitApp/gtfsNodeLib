@@ -72,7 +72,7 @@ function fromCsvStringToArray(string, tableName) {
       string = string.replace(/""/g, '\\"');
       return fromCsvStringToArray(string, tableName);
     }
-    process.notices.addWarning(`Row not valid in table ${tableName}: ${string}`);
+    process.notices.addWarning(__filename, `Row not valid in table ${tableName}: ${string}`);
     return null;
   }
 
