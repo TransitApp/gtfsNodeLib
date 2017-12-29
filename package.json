@@ -4,7 +4,10 @@
   "description": "A Node.js librairie for GTFS",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests.js"
+    "test": "mocha tests.js",
+    "publish-major": "npm version major && npm publish --access public && git push --tags",
+    "publish-minor": "npm version minor && npm publish --access public && git push --tags",
+    "publish-patch": "npm version patch && npm publish --access public && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -12,7 +15,6 @@
   },
   "keywords": [
     "GTFS",
-    "Node",
     "Transit"
   ],
   "author": "Transit Inc.",
