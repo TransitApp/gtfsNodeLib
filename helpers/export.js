@@ -4,6 +4,9 @@
 
 const acomb = require('acomb');
 const async = require('async');
+const infoLog = require('debug')('gtfsNodeLib:i');
+const warningLog = require('debug')('gtfsNodeLib:w');
+const errorLog = require('debug')('gtfsNodeLib:e');
 const fs = require('fs-extra');
 
 const { fromObjectToCsvString } = require('./csv');
@@ -42,22 +45,22 @@ function copyUntouchedTable(inputPath, outputPath, tableName, callback) {
 
   fs.open(fullPathToInputFile, 'r', (err) => {
     if (err && err.code === 'ENOENT') {
-      console.log(`[${getHHmmss()}] Table doesn't exist and won't be added: ${tableName}`);
+      warningLog(`[${getHHmmss()}] Table doesn't exist and won't be added: ${tableName}`);
       callback();
       return;
     }
     if (err) {
-      console.log(err);
+      errorLog(err);
       callback();
       return;
     }
 
     fs.copy(fullPathToInputFile, fullPathToOutputFile, (copyError) => {
       if (copyError) {
-        console.log(copyError);
+        errorLog(copyError);
       }
 
-      console.log(`[${getHHmmss()}] Table has been copied: ${tableName}`);
+      infoLog(`[${getHHmmss()}] Table has been copied: ${tableName}`);
       callback();
     });
   });
@@ -138,7 +141,7 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       });
     }), () => {
       if (rowsBuffer.length === 0) {
-        console.log(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+        infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
         callback();
         return;
       }
@@ -146,7 +149,7 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       fs.appendFile(outputFullPath, rowsBuffer.join(''), (appendingError) => {
         if (appendingError) { throw appendingError; }
 
-        console.log(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+        infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
         callback();
       });
     });
@@ -171,14 +174,14 @@ exports.exportGtfs = (gtfs, outputPath, callback) => {
       return;
     }
 
-    console.log(`Will start exportation of tables: ${Array.from(gtfs.getTableNames()).join(', ')}`);
+    infoLog(`Will start exportation of tables: ${Array.from(gtfs.getTableNames()).join(', ')}`);
 
     async.eachSeries(gtfs.getTableNames(), (tableName, done) => {
       if (gtfs._tables.has(tableName) === true) {
-        console.log(`[${getHHmmss()}] Table will be exported: ${tableName}`);
+        infoLog(`[${getHHmmss()}] Table will be exported: ${tableName}`);
         exportTable(tableName, gtfs, outputPath, done);
       } else {
-        console.log(`[${getHHmmss()}] Table will be copied: ${tableName}`);
+        infoLog(`[${getHHmmss()}] Table will be copied: ${tableName}`);
         copyUntouchedTable(gtfs.getPath(), outputPath, tableName, done);
       }
     }, callback);

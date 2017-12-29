@@ -611,10 +611,8 @@ describe('Tests on GTFS', () => {
     });
 
     const outputPath = `${__dirname}/temp_4865ce67d01f96a489fbd0e71ad8800b/`;
-    gtfs.exportAtPath(outputPath, (err) => {
-      if (err) {
-        console.log(err);
-      }
+    gtfs.exportAtPath(outputPath, (exportError) => {
+      if (exportError) { throw exportError; }
 
       fs.readFile(`${outputPath}routes.txt`, (readRoutesError, routesTxt) => {
         if (readRoutesError) { throw readRoutesError; }

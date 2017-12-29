@@ -2,6 +2,7 @@
 
 /* eslint-disable no-underscore-dangle */
 
+const infoLog = require('debug')('gtfsNodeLib:i');
 const fs = require('fs-extra');
 
 const forEachWithLog = require('./helpers/logging_iterator_wrapper');
@@ -37,7 +38,7 @@ function addItems(items, tableName, gtfs) {
 function getIndexedTableOfGtfs(tableName, gtfs, options) {
   if (gtfs._tables.has(tableName) === false) {
     importTable(gtfs, tableName, options);
-    console.log(`[Importation] Table ${tableName} has been imported.`);
+    infoLog(`[Importation] Table ${tableName} has been imported.`);
   }
 
   return gtfs._tables.get(tableName);

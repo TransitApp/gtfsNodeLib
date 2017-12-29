@@ -2,6 +2,7 @@
 
 /* eslint-disable no-underscore-dangle */
 
+const infoLog = require('debug')('gtfsNodeLib:i');
 const fs = require('fs-extra');
 
 const eachWithLog = require('./logging_iterator_wrapper');
@@ -21,7 +22,7 @@ exports.importTable = (gtfs, tableName, options) => {
     return;
   }
 
-  console.log(`Empty table will be set for table ${tableName} (no input file at path ${gtfs._path}).`);
+  infoLog(`Empty table will be set for table ${tableName} (no input file at path ${gtfs._path}).`);
 
   gtfs._tables.set(tableName, new Map());
 };

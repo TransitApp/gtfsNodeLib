@@ -1,5 +1,7 @@
 'use strict';
 
+const infoLog = require('debug')('gtfsNodeLib:i');
+
 module.exports = (prefix, valueByKey, iteratee) => {
   if (
     valueByKey instanceof Array === false &&
@@ -21,7 +23,7 @@ module.exports = (prefix, valueByKey, iteratee) => {
 
     if (Date.now() - lastLogAt > interval && process.env.TEST === undefined) {
       const percentageDone = (numberOfKeysDone / valueByKey.size()) * 100;
-      console.log(`[${prefix}] ${percentageDone.toPrecision(2)}% done`);
+      infoLog(`[${prefix}] ${percentageDone.toPrecision(2)}% done`);
 
       lastLogAt = Date.now();
       oneProgressionLogHasBeenPrinted = true;
@@ -30,6 +32,6 @@ module.exports = (prefix, valueByKey, iteratee) => {
   });
 
   if (oneProgressionLogHasBeenPrinted && process.env.TEST === undefined) {
-    console.log(`[${prefix}] Done`);
+    infoLog(`[${prefix}] Done`);
   }
 };
