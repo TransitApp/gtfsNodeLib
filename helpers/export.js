@@ -16,6 +16,10 @@ const schema = require('./schema');
  * Private functions
  */
 
+function getSample(iterable) {
+  return (iterable && iterable.values().next()) ? iterable.values().next().value : undefined;
+}
+
 function getHHmmss() {
   const date = new Date();
   return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
@@ -67,18 +71,15 @@ function copyUntouchedTable(inputPath, outputPath, tableName, callback) {
 }
 
 function getActualKeysForTable(gtfs, tableName) {
-  const deepness = schema.deepnessByTableName[tableName];
-  let sampleItem;
-
-  if (deepness === 0) {
-    sampleItem = gtfs.getIndexedTable(tableName);
-  } else if (deepness === 1) {
-    sampleItem = gtfs.getIndexedTable(tableName).values().next().value;
-  } else if (deepness === 2) {
-    sampleItem = gtfs.getIndexedTable(tableName).values().next().value.values().next().value;
-  }
-
   const keys = [...schema.keysByTableName[tableName]];
+  const deepness = schema.deepnessByTableName[tableName];
+  let sampleItem = gtfs.getIndexedTable(tableName);
+
+  if (deepness === 1) {
+    sampleItem = getSample(sampleItem);
+  } else if (deepness === 2) {
+    sampleItem = getSample(getSample(sampleItem));
+  }
 
   if (sampleItem) {
     Object.keys(sampleItem).forEach((key) => {
