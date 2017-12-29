@@ -34,12 +34,12 @@ function getRows(buffer, regexPatternObjectsByTableName, tableName) {
   const rows = [];
   let rowsSlice;
   let position = 0;
-  const length = 50000;
+  const batchLength = 50000;
   let merge;
   const regexPatternObjects = regexPatternObjectsByTableName[tableName];
 
   while (position < buffer.length) {
-    rowsSlice = buffer.toString('utf8', position, Math.min(buffer.length, position + length));
+    rowsSlice = buffer.toString('utf8', position, Math.min(buffer.length, position + batchLength));
 
     if (regexPatternObjects) {
       regexPatternObjects.forEach((regexPatternObject) => {
@@ -64,7 +64,7 @@ function getRows(buffer, regexPatternObjectsByTableName, tableName) {
     });
 
     merge = rowsSlice[rowsSlice.length] !== '\n';
-    position += length;
+    position += batchLength;
   }
 
   return rows;

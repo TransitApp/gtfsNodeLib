@@ -63,7 +63,7 @@ function fromCsvStringToArray(string, tableName) {
     return null;
   }
 
-  if (string.includes('"') === false) {
+  if (!string.includes('"')) {
     return string.split(',');
   }
 
