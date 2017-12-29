@@ -4,7 +4,7 @@
   "description": "A Node.js librairie for GTFS",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha tests.js"
+    "test": "mocha tests.js"
   },
   "repository": {
     "type": "git",
