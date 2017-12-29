@@ -1,0 +1,43 @@
+{
+  "name": "@transit/gtfs",
+  "version": "1.0.0",
+  "description": "A Node.js librairie for GTFS",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TransitApp/gtfsNodeLib.git"
+  },
+  "keywords": [
+    "GTFS",
+    "Node",
+    "Transit"
+  ],
+  "author": "Transit Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TransitApp/gtfsNodeLib/issues"
+  },
+  "homepage": "https://github.com/TransitApp/gtfsNodeLib#readme",
+  "dependencies": {
+    "acomb": "1.2.2",
+    "async": "2.6.0",
+    "fs-extra": "5.0.0"
+  },
+  "jshintConfig": {
+    "esversion": 6,
+    "node": true,
+    "globals": {
+      "__rootname": false
+    }
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.16.0",
+    "eslint-config-transit": "^1.0.3",
+    "eslint-plugin-import": "^2.2.0",
+    "mocha": "^3.5.3"
+  }
+}

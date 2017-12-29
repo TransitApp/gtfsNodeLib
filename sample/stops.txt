@@ -1,0 +1,3 @@
+stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon
+stop_0,SC0,Stop 0,Some stop,37.728631,-122.431282
+stop_1,SC1,Stop 1,Some other stop,37.74103,-122.422482
