@@ -22,7 +22,7 @@ module.exports = (prefix, valueByKey, iteratee) => {
     numberOfKeysDone += 1;
 
     if (Date.now() - lastLogAt > interval && process.env.TEST === undefined) {
-      const percentageDone = (numberOfKeysDone / valueByKey.size()) * 100;
+      const percentageDone = (numberOfKeysDone / valueByKey.size) * 100;
       infoLog(`[${prefix}] ${percentageDone.toPrecision(2)}% done`);
 
       lastLogAt = Date.now();
