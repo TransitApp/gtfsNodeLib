@@ -18,7 +18,6 @@ const schema = require('./helpers/schema');
  * @param {string}         tableName Name of the table of the GTFS in which the objects should be added.
  * @param {Array.<Object>} items     Array of items to add to the GTFS.
  */
-
 function addItems(gtfs, tableName, items) {
   if (items instanceof Array === false) {
     throw new Error(`items must be an array instead of: ${items}`);
@@ -52,7 +51,6 @@ function addItems(gtfs, tableName, items) {
  * @param  {Object} [options] Configuration object passed to importTable function.
  * @return {Object}           Indexed table returned
  */
-
 function getIndexedTable(gtfs, tableName, options) {
   if (gtfs._tables.has(tableName) === false) {
     importTable(gtfs, tableName, options);
@@ -69,7 +67,6 @@ function getIndexedTable(gtfs, tableName, options) {
  * @param  {string}   tableName Name of the table of the GTFS to enumerate.
  * @param  {function} iterator  Function which will be applied on every item of the table.
  */
-
 function forEachItem(gtfs, tableName, iterator) {
   if (typeof iterator !== 'function') {
     throw new Error(`iterator must be a function, instead of a ${typeof iterator}.`);
@@ -99,7 +96,6 @@ function forEachItem(gtfs, tableName, iterator) {
  * @param  {string}         tableName Name of the table of the GTFS in which to add the items.
  * @param  {Array.<Object>} items     Array of items to remove of the GTFS.
  */
-
 function removeItems(gtfs, tableName, items) {
   if (items instanceof Array === false) {
     throw new Error(`items must be an array instead of: ${items}`);
@@ -133,7 +129,6 @@ function removeItems(gtfs, tableName, items) {
  * @param  {string} tableName    Name of the table of the GTFS to set.
  * @param  {Map}    indexedItems Object properly indexed as the schema requires the table to be (see schema.js).
  */
-
 function setIndexedItems(gtfs, tableName, indexedItems) {
   if (indexedItems instanceof Map === false && schema.deepnessByTableName[tableName] !== 0) {
     throw new Error(`indexedItems must be a Map instead of: ${indexedItems}`);
@@ -153,7 +148,6 @@ class Gtfs {
    *          >} [regexPatternObjectsByTableName] Optional ad-hoc regex to fix the tables. See importTable.
    * @return {Gtfs} gtfs Instanciated GTFS object.
    */
-
   constructor(path, regexPatternObjectsByTableName) {
     if (typeof path !== 'string' || path.length === 0) {
       throw new Error(`Gtfs need a valid input path as string, instead of: "${path}".`);
@@ -172,7 +166,7 @@ class Gtfs {
     this._tables = new Map();
   }
 
-  /* io */
+  /* Input/Output */
   /**
    * Async function exporting the GTFS at a specific path.
    *
@@ -187,6 +181,7 @@ class Gtfs {
    * @return {string} Path to the imported GTFS.
    */
   getPath() { return this._path; }
+
 
   /* Generic table & item manipulation */
   /**
@@ -205,25 +200,158 @@ class Gtfs {
    */
   addItemsInTable(items, tableName) { addItems(this, tableName, items); }
 
+  /**
+   * Table-generic function to get an iterate in a table of the GTFS.
+   *
+   * @param  {string}   tableName Name of the table of the GTFS to enumerate.
+   * @param  {function} iterator  Function which will be applied on every item of the table.
+   */
   forEachItemInTable(tableName, iterator) { forEachItem(this, tableName, iterator); }
+
+  /**
+   * Enumerate through every table name of the GTFS.
+   *
+   * @param {function} iterator Function which will be applied on every table name.
+   */
   forEachTableName(iterator) { this.getTableNames().forEach(iterator); }
-  getIndexedTable(tableName, forcedValuesByKeys) { return getIndexedTable(this, tableName, forcedValuesByKeys); }
+
+  /**
+   * Table-generic function to get an indexed table of the GTFS. The indexation depends of the table, and is defined in
+   * the schema (see schema.js).
+   *
+   * @param  {string} tableName Name of the table of the GTFS to get.
+   * @param  {Object} [options] Configuration object passed to importTable function.
+   * @return {Object}           Indexed table returned
+   */
+  getIndexedTable(tableName, options) { return getIndexedTable(this, tableName, options); }
+
+  /**
+   * Get an item of a table using its index.
+   *
+   * WARNING: Will work only for the tables in which such unique indexing value exists (see schema.js for an
+   * exhaustive list)
+   *
+   * @param {string} index     Index of the item
+   * @param {string} tableName Name of the table
+   */
   getItemWithIndexInTable(index, tableName) { return getters.getItemWithIndex(index, tableName, this); }
+
+  /**
+   * Get a Set containing every table names, either defined as part of the GTFS specification, or already loaded in
+   * the GTFS.
+   *
+   * @return {Set.<string>} Array of the table names
+   */
   getTableNames() { return new Set([...schema.tableNames, ...this._tables.keys()]); }
+
+  /**
+   * Get the parent item using one of its child.
+   *
+   * @param {Object} item      The child item.
+   * @param {string} tableName The name of the table containing the parent item.
+   * @return {Object}          The parent item.
+   */
   getParentItem(item, tableName) { return getters.getParentItem(item, tableName, this); }
+
+  /**
+   * Table-generic function to remove one item in a table of the GTFS.
+   *
+   * @param  {Object} item      Item to remove of the GTFS.
+   * @param  {string} tableName Name of the table of the GTFS in which to remove the items.
+   */
   removeItemInTable(item, tableName) { removeItems(this, tableName, [item]); }
+
+  /**
+   * Table-generic function to remove items in a table of the GTFS.
+   *
+   * @param  {Array.<Object>} items     Array of items to remove of the GTFS.
+   * @param  {string}         tableName Name of the table of the GTFS in which to remove the items.
+   */
   removeItemsInTable(items, tableName) { removeItems(this, tableName, items); }
+
+  /**
+   * Table-generic function to set an indexed table in the GTFS.
+   *
+   * @param  {Map}    indexedItems Object properly indexed as the schema requires the table to be (see schema.js).
+   * @param  {string} tableName    Name of the table of the GTFS to set.
+   */
   setIndexedItemsAsTable(indexedItems, tableName) { setIndexedItems(this, tableName, indexedItems); }
 
+
   /* agency.txt */
+
+  /**
+   * Adds an agency in the GTFS.
+   *
+   * @param {Object} agency Agency to add in the GTFS.
+   */
   addAgency(agency) { addItems(this, 'agency', [agency]); }
+
+  /**
+   * Adds a list of agencies in the GTFS.
+   *
+   * @param {Array.<Object>} agencies Array of agencies to add in the GTFS.
+   */
   addAgencies(agencies) { addItems(this, 'agency', agencies); }
+
+  /**
+   * Apply a function to each agency in the GTFS.
+   *
+   * @param {function} iterator Function which will be applied on every agency.
+   */
   forEachAgency(iterator) { forEachItem(this, 'agency', iterator); }
+
+  /**
+   * Get the agency using one of its child route.
+   *
+   * WARNING: Will return the agency which is indexed with the route.agency_id of the route passed as argument. If the
+   * internal value of the agency's agency_id has been changed but not it's indexing, the result will be wrong.
+   *
+   * @param {Object} route A route of the GTFS.
+   * @return {Object} The agency indexed by the route.agency_id of the route passed as parameter.
+   */
   getAgencyOfRoute(route) { return getters.getParentItem(route, 'agency', this); }
+
+  /**
+   * Get the agency using its agency_id.
+   *
+   * WARNING: Will return the agency which is indexed with the agency_id passed as argument. If the internal value of
+   * the agency's agency_id has been changed but not it's indexing, the result will be wrong.
+   *
+   * @param {string} agencyId Index of the agency.
+   * @return {Object} The agency indexed by the agencyId passed as parameter.
+   */
   getAgencyWithId(agencyId) { return getters.getItemWithIndex(agencyId, 'agency', this); }
+
+  /**
+   * Get the indexed agencies of the GTFS. The indexation is defined in the schema (see schema.js).
+   *
+   * @return {Object} Indexed agencies.
+   */
   getIndexedAgencies() { return getIndexedTable(this, 'agency'); }
+
+  /**
+   * Removes an agency of the GTFS.
+   * WARNING: it will remove the agency indexed by the `agency.agency_id` of the agency passed as parameter.
+   *
+   * @param {Object} agency Agency to remove of the GTFS.
+   */
   removeAgency(agency) { removeItems(this, 'agency', [agency]); }
+
+  /**
+   * Removes agencies of the GTFS.
+   * WARNING: it will remove the agencies indexed by the `agency.agency_id` of the agencies passed as parameter.
+   *
+   * @param {Array.<Object>} agencies Agencies to remove of the GTFS.
+   */
   removeAgencies(agencies) { removeItems(this, 'agency', agencies); }
+
+  /**
+   * Set the map of indexed agencies.
+   * WARNING: the Map should be indexed as defined in schema.js
+   *
+   * @param {Map.<string, Object>} indexedAgencies Map of agencies properly indexed (see schema.js).
+   */
   setIndexedAgencies(indexedAgencies) { setIndexedItems(this, 'agency', indexedAgencies); }
 
   /* stops.txt */

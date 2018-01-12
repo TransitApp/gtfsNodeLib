@@ -72,6 +72,16 @@ function getIndexedItemsWithParentIndex(parentIndex, tableName, gtfs) {
   return indexedTable.get(parentIndex);
 }
 
+/**
+ * Get the item of a table using its index.
+ *
+ * WARNING: Will work only for the tables in which such unique indexing value exists (see schema.js for an
+ * exhaustive list)
+ *
+ * @param {string} index     Index of the item
+ * @param {string} tableName Name of the table
+ * @param {Gtfs}   gtfs      Gtfs object
+ */
 function getItemWithIndex(index, tableName, gtfs) {
   if (schema.deepnessByTableName[tableName] !== 1) {
     throw new Error(`Cannot access item with only one index in "${tableName}", since the deepness is not 1.`);
@@ -85,6 +95,17 @@ function getItemWithIndex(index, tableName, gtfs) {
   return indexedTable.get(index);
 }
 
+/**
+ * Get the item of a table using its indexes.
+ *
+ * WARNING: Will work only for the tables which have a double level of indexing, which is required when there is no
+ * value uniquely identifying each item (see schema.js for an exhaustive list)
+ *
+ * @param {string} firstIndex  First index of the item
+ * @param {string} secondIndex Second index of the item
+ * @param {string} tableName   Name of the table
+ * @param {Gtfs}   gtfs        Gtfs object
+ */
 function getItemWithIndexes(firstIndex, secondIndex, tableName, gtfs) {
   if (schema.deepnessByTableName[tableName] !== 2) {
     throw new Error(`Cannot access item with two indexes in "${tableName}", since the deep is not 2.`);
