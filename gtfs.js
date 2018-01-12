@@ -14,12 +14,12 @@ const schema = require('./helpers/schema');
 /**
  * Table-generic function to add items in a table of a GTFS.
  *
- * @param {Array<Object>}  items     Array of item to add to the GTFS.
+ * @param {Gtfs}           gtfs      GTFS object in which to add the items.
  * @param {string}         tableName Name of the table of the GTFS in which the objects should be added.
- * @param {Object}         gtfs      GTFS object in which to add the items.
+ * @param {Array.<Object>} items     Array of items to add to the GTFS.
  */
 
-function addItems(items, tableName, gtfs) {
+function addItems(gtfs, tableName, items) {
   if (items instanceof Array === false) {
     throw new Error(`items must be an array instead of: ${items}`);
   }
@@ -45,15 +45,15 @@ function addItems(items, tableName, gtfs) {
 
 /**
  * Table-generic function to get an indexed table of a GTFS. The indexation depends of the table, and is defined in
- * the schema (If possible, it is the unique id).
+ * the schema (see schema.js).
  *
- * @param  {string}           tableName Name of the table of the GTFS to get.
- * @param  {Object}           gtfs      GTFS object containing the table to get.
- * @param  {Object|undefined} options   Configuration object passed to importTable function.
- * @return {Object}                     Indexed table returned
+ * @param  {Gtfs}   gtfs      GTFS object containing the table to get.
+ * @param  {string} tableName Name of the table of the GTFS to get.
+ * @param  {Object} [options] Configuration object passed to importTable function.
+ * @return {Object}           Indexed table returned
  */
 
-function getIndexedTableOfGtfs(tableName, gtfs, options) {
+function getIndexedTable(gtfs, tableName, options) {
   if (gtfs._tables.has(tableName) === false) {
     importTable(gtfs, tableName, options);
     infoLog(`[Importation] Table ${tableName} has been imported.`);
@@ -65,12 +65,12 @@ function getIndexedTableOfGtfs(tableName, gtfs, options) {
 /**
  * Table-generic function to get an iterate in a table of a GTFS.
  *
- * @param  {function} iterator  Function which will be applied on every item of the table.
+ * @param  {Gtfs}     gtfs      GTFS object containing the table to iterate on.
  * @param  {string}   tableName Name of the table of the GTFS to enumerate.
- * @param  {Object}   gtfs      GTFS object containing the table to iterate on.
+ * @param  {function} iterator  Function which will be applied on every item of the table.
  */
 
-function forEachItem(iterator, tableName, gtfs) {
+function forEachItem(gtfs, tableName, iterator) {
   if (typeof iterator !== 'function') {
     throw new Error(`iterator must be a function, instead of a ${typeof iterator}.`);
   }
@@ -95,12 +95,12 @@ function forEachItem(iterator, tableName, gtfs) {
 /**
  * Table-generic function to remove items in a table of a GTFS.
  *
- * @param  {Array<Object>} items     Array of item to remove of the GTFS.
- * @param  {string}        tableName Name of the table of the GTFS in which to add the items.
- * @param  {Object}        gtfs      GTFS object containing the table in which the object should be removed.
+ * @param  {Gtfs}           gtfs      GTFS object containing the table in which the object should be removed.
+ * @param  {string}         tableName Name of the table of the GTFS in which to add the items.
+ * @param  {Array.<Object>} items     Array of items to remove of the GTFS.
  */
 
-function removeItems(items, tableName, gtfs) {
+function removeItems(gtfs, tableName, items) {
   if (items instanceof Array === false) {
     throw new Error(`items must be an array instead of: ${items}`);
   }
@@ -129,12 +129,12 @@ function removeItems(items, tableName, gtfs) {
 /**
  * Table-generic function to set an indexed table in the GTFS.
  *
- * @param  {Object} indexedItems Object properly indexed as the schema requires the table to be.
+ * @param  {Gtfs}   gtfs         GTFS object in which the table will be set.
  * @param  {string} tableName    Name of the table of the GTFS to set.
- * @param  {Object} gtfs         GTFS object in which the table will be set.
+ * @param  {Map}    indexedItems Object properly indexed as the schema requires the table to be (see schema.js).
  */
 
-function setIndexedItems(indexedItems, tableName, gtfs) {
+function setIndexedItems(gtfs, tableName, indexedItems) {
   if (indexedItems instanceof Map === false && schema.deepnessByTableName[tableName] !== 0) {
     throw new Error(`indexedItems must be a Map instead of: ${indexedItems}`);
   }
@@ -146,9 +146,12 @@ class Gtfs {
   /**
    * Constructor of the GTFS
    *
-   * @param  {string}           path                           Path to the folder contains the GTFS text files.
-   * @param  {Object|undefined} regexPatternObjectsByTableName Optional ad-hoc regex to fix the tables. See importTable.
-   * @return {Object}           gtfs                           Instanciated GTFS object.
+   * @param  {string} path Path to the folder that contains the GTFS text files.
+   * @param  {Map.<
+   *           string,
+   *           Array.<{regex: RegExp, pattern: string}>
+   *          >} [regexPatternObjectsByTableName] Optional ad-hoc regex to fix the tables. See importTable.
+   * @return {Gtfs} gtfs Instanciated GTFS object.
    */
 
   constructor(path, regexPatternObjectsByTableName) {
@@ -173,7 +176,7 @@ class Gtfs {
   /**
    * Async function exporting the GTFS at a specific path.
    *
-   * @param  {string}   path     Path to the folder which will contains the GTFS. The folder will be created if needed.
+   * @param  {string}   path     Path to the folder which will contain the GTFS. The folder will be created if needed.
    * @param  {function} callback Function called when the export will be done.
    */
   exportAtPath(path, callback) { exportGtfs(this, path, callback); }
@@ -192,108 +195,108 @@ class Gtfs {
    * @param {Object} item      Item to add in the GTFS.
    * @param {string} tableName Name of the table of the GTFS in which the item will be added.
    */
-  addItemInTable(item, tableName) { addItems([item], tableName, this); }
+  addItemInTable(item, tableName) { addItems(this, tableName, [item]); }
 
   /**
    * Table-generic function to add items in a table of the GTFS.
    *
-   * @param {Array<Object>} items     Array of items to add in the GTFS.
-   * @param {string}        tableName Name of the table of the GTFS in which the item will be added.
+   * @param {Array.<Map>} items Array of items to add in the GTFS.
+   * @param {string}            tableName Name of the table of the GTFS in which the item will be added.
    */
-  addItemsInTable(items, tableName) { addItems(items, tableName, this); }
+  addItemsInTable(items, tableName) { addItems(this, tableName, items); }
 
-  forEachItemInTable(tableName, iterator) { forEachItem(iterator, tableName, this); }
+  forEachItemInTable(tableName, iterator) { forEachItem(this, tableName, iterator); }
   forEachTableName(iterator) { this.getTableNames().forEach(iterator); }
-  getIndexedTable(tableName, forcedValuesByKeys) { return getIndexedTableOfGtfs(tableName, this, forcedValuesByKeys); }
+  getIndexedTable(tableName, forcedValuesByKeys) { return getIndexedTable(this, tableName, forcedValuesByKeys); }
   getItemWithIndexInTable(index, tableName) { return getters.getItemWithIndex(index, tableName, this); }
   getTableNames() { return new Set([...schema.tableNames, ...this._tables.keys()]); }
   getParentItem(item, tableName) { return getters.getParentItem(item, tableName, this); }
-  removeItemInTable(item, tableName) { removeItems([item], tableName, this); }
-  removeItemsInTable(items, tableName) { removeItems(items, tableName, this); }
-  setIndexedItemsAsTable(indexedItems, tableName) { setIndexedItems(indexedItems, tableName, this); }
+  removeItemInTable(item, tableName) { removeItems(this, tableName, [item]); }
+  removeItemsInTable(items, tableName) { removeItems(this, tableName, items); }
+  setIndexedItemsAsTable(indexedItems, tableName) { setIndexedItems(this, tableName, indexedItems); }
 
   /* agency.txt */
-  addAgency(agency) { addItems([agency], 'agency', this); }
-  addAgencies(agencies) { addItems(agencies, 'agency', this); }
-  forEachAgency(iterator) { forEachItem(iterator, 'agency', this); }
+  addAgency(agency) { addItems(this, 'agency', [agency]); }
+  addAgencies(agencies) { addItems(this, 'agency', agencies); }
+  forEachAgency(iterator) { forEachItem(this, 'agency', iterator); }
   getAgencyOfRoute(route) { return getters.getParentItem(route, 'agency', this); }
   getAgencyWithId(agencyId) { return getters.getItemWithIndex(agencyId, 'agency', this); }
-  getIndexedAgencies() { return getIndexedTableOfGtfs('agency', this); }
-  removeAgency(agency) { removeItems([agency], 'agency', this); }
-  removeAgencies(agencies) { removeItems(agencies, 'agency', this); }
-  setIndexedAgencies(indexedAgencies) { setIndexedItems(indexedAgencies, 'agency', this); }
+  getIndexedAgencies() { return getIndexedTable(this, 'agency'); }
+  removeAgency(agency) { removeItems(this, 'agency', [agency]); }
+  removeAgencies(agencies) { removeItems(this, 'agency', agencies); }
+  setIndexedAgencies(indexedAgencies) { setIndexedItems(this, 'agency', indexedAgencies); }
 
   /* stops.txt */
-  addStop(stop) { addItems([stop], 'stops', this); }
-  addStops(stops) { addItems(stops, 'stops', this); }
-  forEachStop(iterator) { forEachItem(iterator, 'stops', this); }
-  getIndexedStops() { return getIndexedTableOfGtfs('stops', this); }
+  addStop(stop) { addItems(this, 'stops', [stop]); }
+  addStops(stops) { addItems(this, 'stops', stops); }
+  forEachStop(iterator) { forEachItem(this, 'stops', iterator); }
+  getIndexedStops() { return getIndexedTable(this, 'stops'); }
   getStopOfStopTime(stopTime) { return getters.getParentItem(stopTime, 'stops', this); }
   getStopWithId(stopId) { return getters.getItemWithIndex(stopId, 'stops', this); }
-  removeStop(stop) { removeItems([stop], 'stops', this); }
-  removeStops(stops) { removeItems(stops, 'stops', this); }
-  setIndexedStops(indexedStops) { setIndexedItems(indexedStops, 'stops', this); }
+  removeStop(stop) { removeItems(this, 'stops', [stop]); }
+  removeStops(stops) { removeItems(this, 'stops', stops); }
+  setIndexedStops(indexedStops) { setIndexedItems(this, 'stops', indexedStops); }
 
   /* routes.txt */
-  addRoute(route) { addItems([route], 'routes', this); }
-  addRoutes(routes) { addItems(routes, 'routes', this); }
-  forEachRoute(iterator) { forEachItem(iterator, 'routes', this); }
-  getIndexedRoutes() { return getIndexedTableOfGtfs('routes', this); }
+  addRoute(route) { addItems(this, 'routes', [route]); }
+  addRoutes(routes) { addItems(this, 'routes', routes); }
+  forEachRoute(iterator) { forEachItem(this, 'routes', iterator); }
+  getIndexedRoutes() { return getIndexedTable(this, 'routes'); }
   getRouteOfStopTime(stopTime) { return getters.getGrandParentItem(stopTime, 'trips', 'routes', this); }
   getRouteOfTrip(trip) { return getters.getParentItem(trip, 'routes', this); }
   getRouteWithId(routeId) { return getters.getItemWithIndex(routeId, 'routes', this); }
-  removeRoute(route) { removeItems([route], 'routes', this); }
-  removeRoutes(routes) { removeItems(routes, 'routes', this); }
-  setIndexedRoutes(indexedRoutes) { setIndexedItems(indexedRoutes, 'routes', this); }
+  removeRoute(route) { removeItems(this, 'routes', [route]); }
+  removeRoutes(routes) { removeItems(this, 'routes', routes); }
+  setIndexedRoutes(indexedRoutes) { setIndexedItems(this, 'routes', indexedRoutes); }
 
   /* trips.txt */
-  addTrip(trip) { addItems([trip], 'trips', this); }
-  addTrips(trips) { addItems(trips, 'trips', this); }
-  forEachTrip(iterator) { forEachItem(iterator, 'trips', this); }
-  getIndexedTrips() { return getIndexedTableOfGtfs('trips', this); }
+  addTrip(trip) { addItems(this, 'trips', [trip]); }
+  addTrips(trips) { addItems(this, 'trips', trips); }
+  forEachTrip(iterator) { forEachItem(this, 'trips', iterator); }
+  getIndexedTrips() { return getIndexedTable(this, 'trips'); }
   getTripOfStopTime(stopTime) { return getters.getParentItem(stopTime, 'trips', this); }
   getTripWithId(tripId) { return getters.getItemWithIndex(tripId, 'trips', this); }
-  removeTrip(trip) { removeItems([trip], 'trips', this); }
-  removeTrips(trips) { removeItems(trips, 'trips', this); }
-  setIndexedTrips(indexedTrips) { setIndexedItems(indexedTrips, 'trips', this); }
+  removeTrip(trip) { removeItems(this, 'trips', [trip]); }
+  removeTrips(trips) { removeItems(this, 'trips', trips); }
+  setIndexedTrips(indexedTrips) { setIndexedItems(this, 'trips', indexedTrips); }
 
   /* stop_times.txt */
-  addStopTime(stopTime) { addItems([stopTime], 'stop_times', this); }
-  addStopTimes(stopTimes) { addItems(stopTimes, 'stop_times', this); }
-  forEachStopTime(iterator) { forEachItem(iterator, 'stop_times', this); }
+  addStopTime(stopTime) { addItems(this, 'stop_times', [stopTime]); }
+  addStopTimes(stopTimes) { addItems(this, 'stop_times', stopTimes); }
+  forEachStopTime(iterator) { forEachItem(this, 'stop_times', iterator); }
   forEachStopTimeOfTrip(trip, iterator) {
     const stopTimeByStopSequence = this.getStopTimeByStopSequenceOfTrip(trip);
     if (stopTimeByStopSequence instanceof Map) {
       stopTimeByStopSequence.forEach(iterator);
     }
   }
-  getIndexedStopTimes() { return getIndexedTableOfGtfs('stop_times', this); }
+  getIndexedStopTimes() { return getIndexedTable(this, 'stop_times'); }
   getStopTimeByStopSequenceOfTrip(trip) { return getters.getIndexedItemsWithParent(trip, 'stop_times', this); }
   getStopTimeWithTripIdAndStopSequence(tripId, stopSequence) {
     return getters.getItemWithIndexes(tripId, stopSequence, 'stop_times', this);
   }
-  removeStopTime(stopTime) { removeItems([stopTime], 'stop_times', this); }
-  removeStopTimes(stopTimes) { removeItems(stopTimes, 'stop_times', this); }
-  setIndexedStopTimes(indexedStopTimes) { setIndexedItems(indexedStopTimes, 'stop_times', this); }
+  removeStopTime(stopTime) { removeItems(this, 'stop_times', [stopTime]); }
+  removeStopTimes(stopTimes) { removeItems(this, 'stop_times', stopTimes); }
+  setIndexedStopTimes(indexedStopTimes) { setIndexedItems(this, 'stop_times', indexedStopTimes); }
 
   /* calendar.txt */
-  addCalendar(calendar) { addItems([calendar], 'calendar', this); }
-  addCalendars(calendars) { addItems(calendars, 'calendar', this); }
-  forEachCalendar(iterator) { forEachItem(iterator, 'calendar', this); }
+  addCalendar(calendar) { addItems(this, 'calendar', [calendar]); }
+  addCalendars(calendars) { addItems(this, 'calendar', calendars); }
+  forEachCalendar(iterator) { forEachItem(this, 'calendar', iterator); }
   getCalendarOfTrip(trip) { return getters.getParentItem(trip, 'calendar', this); }
   getCalendarOfStopTime(stopTime) {
     return getters.getGrandParentItem(stopTime, 'trips', 'calendar', this);
   }
   getCalendarWithServiceId(serviceId) { return getters.getItemWithIndex(serviceId, 'calendar', this); }
-  getIndexedCalendars() { return getIndexedTableOfGtfs('calendar', this); }
-  removeCalendar(calendar) { removeItems([calendar], 'calendar', this); }
-  removeCalendars(calendars) { removeItems(calendars, 'calendar', this); }
-  setIndexedCalendars(indexedCalendars) { setIndexedItems(indexedCalendars, 'calendar', this); }
+  getIndexedCalendars() { return getIndexedTable(this, 'calendar'); }
+  removeCalendar(calendar) { removeItems(this, 'calendar', [calendar]); }
+  removeCalendars(calendars) { removeItems(this, 'calendar', calendars); }
+  setIndexedCalendars(indexedCalendars) { setIndexedItems(this, 'calendar', indexedCalendars); }
 
   /* calendar_dates.txt */
-  addCalendarDate(calendarDate) { addItems([calendarDate], 'calendar_dates', this); }
-  addCalendarDates(calendarDates) { addItems(calendarDates, 'calendar_dates', this); }
-  forEachCalendarDate(iterator) { forEachItem(iterator, 'calendar_dates', this); }
+  addCalendarDate(calendarDate) { addItems(this, 'calendar_dates', [calendarDate]); }
+  addCalendarDates(calendarDates) { addItems(this, 'calendar_dates', calendarDates); }
+  forEachCalendarDate(iterator) { forEachItem(this, 'calendar_dates', iterator); }
   getCalendarDateByDateOfServiceId(serviceId) {
     return getters.getIndexedItemsWithParentIndex(serviceId, 'calendar_dates', this);
   }
@@ -301,10 +304,10 @@ class Gtfs {
   getCalendarDateWithServiceIdAndDate(serviceId, date) {
     return getters.getItemWithIndexes(serviceId, date, 'calendar_dates', this);
   }
-  getIndexedCalendarDates() { return getIndexedTableOfGtfs('calendar_dates', this); }
-  removeCalendarDate(calendarDate) { removeItems([calendarDate], 'calendar_dates', this); }
-  removeCalendarDates(calendarDates) { removeItems(calendarDates, 'calendar_dates', this); }
-  setIndexedCalendarDates(indexedCalendarDates) { setIndexedItems(indexedCalendarDates, 'calendar_dates', this); }
+  getIndexedCalendarDates() { return getIndexedTable(this, 'calendar_dates'); }
+  removeCalendarDate(calendarDate) { removeItems(this, 'calendar_dates', [calendarDate]); }
+  removeCalendarDates(calendarDates) { removeItems(this, 'calendar_dates', calendarDates); }
+  setIndexedCalendarDates(indexedCalendarDates) { setIndexedItems(this, 'calendar_dates', indexedCalendarDates); }
 
   /* fare_attributes.txt */
   // Not used, therefore not implemented
@@ -313,10 +316,10 @@ class Gtfs {
   // Not used, therefore not implemented
 
   /* shapes.txt */
-  addShapePoint(shapePoint) { addItems([shapePoint], 'shapes', this); }
-  addShapePoints(shapePoints) { addItems(shapePoints, 'shapes', this); }
-  forEachShapePoint(iterator) { forEachItem(iterator, 'shapes', this); }
-  getIndexedShapePoints() { return getIndexedTableOfGtfs('shapes', this); }
+  addShapePoint(shapePoint) { addItems(this, 'shapes', [shapePoint]); }
+  addShapePoints(shapePoints) { addItems(this, 'shapes', shapePoints); }
+  forEachShapePoint(iterator) { forEachItem(this, 'shapes', iterator); }
+  getIndexedShapePoints() { return getIndexedTable(this, 'shapes'); }
   getShapePointByShapePointSequenceOfShapeId(shapeId) {
     return getters.getIndexedItemsWithParentIndex(shapeId, 'shapes', this);
   }
@@ -324,37 +327,37 @@ class Gtfs {
   getShapePointWithTripIdAndShapePointSequence(tripId, shapePointSequence) {
     return getters.getItemWithIndexes(tripId, shapePointSequence, 'shapes', this);
   }
-  removeShapePoint(shapePoint) { removeItems([shapePoint], 'shapes', this); }
-  removeShapePoints(shapePoints) { removeItems(shapePoints, 'shapes', this); }
-  setIndexedShapePoints(indexedShapes) { setIndexedItems(indexedShapes, 'shapes', this); }
+  removeShapePoint(shapePoint) { removeItems(this, 'shapes', [shapePoint]); }
+  removeShapePoints(shapePoints) { removeItems(this, 'shapes', shapePoints); }
+  setIndexedShapePoints(indexedShapes) { setIndexedItems(this, 'shapes', indexedShapes); }
 
   /* frequencies.txt */
-  addFrequency(frequency) { addItems([frequency], 'frequencies', this); }
-  addFrequencies(frequencies) { addItems(frequencies, 'frequencies', this); }
-  forEachFrequency(iterator) { forEachItem(iterator, 'frequencies', this); }
-  getIndexedFrequencies() { return getIndexedTableOfGtfs('frequencies', this); }
+  addFrequency(frequency) { addItems(this, 'frequencies', [frequency]); }
+  addFrequencies(frequencies) { addItems(this, 'frequencies', frequencies); }
+  forEachFrequency(iterator) { forEachItem(this, 'frequencies', iterator); }
+  getIndexedFrequencies() { return getIndexedTable(this, 'frequencies'); }
   getFrequencyWithTripIdAndStartTime(tripId, startTime) {
     return getters.getItemWithIndexes(tripId, startTime, 'frequencies', this);
   }
-  removeFrequency(frequency) { removeItems([frequency], 'frequencies', this); }
-  removeFrequencies(frequencies) { removeItems(frequencies, 'frequencies', this); }
-  setIndexedFrequencies(indexedFrequencies) { setIndexedItems(indexedFrequencies, 'frequencies', this); }
+  removeFrequency(frequency) { removeItems(this, 'frequencies', [frequency]); }
+  removeFrequencies(frequencies) { removeItems(this, 'frequencies', frequencies); }
+  setIndexedFrequencies(indexedFrequencies) { setIndexedItems(this, 'frequencies', indexedFrequencies); }
 
   /* transfers.txt */
-  addTransfer(transfer) { addItems([transfer], 'transfers', this); }
-  addTransfers(transfers) { addItems(transfers, 'transfers', this); }
-  forEachTransfer(iterator) { forEachItem(iterator, 'transfers', this); }
-  getIndexedTransfers() { return getIndexedTableOfGtfs('transfers', this); }
+  addTransfer(transfer) { addItems(this, 'transfers', [transfer]); }
+  addTransfers(transfers) { addItems(this, 'transfers', transfers); }
+  forEachTransfer(iterator) { forEachItem(this, 'transfers', iterator); }
+  getIndexedTransfers() { return getIndexedTable(this, 'transfers'); }
   getTransfertWithFromStopIdAndToStopId(fromStopId, toStopId) {
     return getters.getItemWithIndexes(fromStopId, toStopId, 'transfers', this);
   }
-  removeTransfer(transfer) { removeItems([transfer], 'transfers', this); }
-  removeTransfers(transfers) { removeItems(transfers, 'transfers', this); }
-  setIndexedTransfers(indexedTransfers) { setIndexedItems(indexedTransfers, 'transfers', this); }
+  removeTransfer(transfer) { removeItems(this, 'transfers', [transfer]); }
+  removeTransfers(transfers) { removeItems(this, 'transfers', transfers); }
+  setIndexedTransfers(indexedTransfers) { setIndexedItems(this, 'transfers', indexedTransfers); }
 
   /* feed_info.txt */
-  getFeedInfo() { return getIndexedTableOfGtfs('feed_info', this); }
-  setFeedInfo(feedInfo) { setIndexedItems(feedInfo, 'feed_info', this); }
+  getFeedInfo() { return getIndexedTable(this, 'feed_info'); }
+  setFeedInfo(feedInfo) { setIndexedItems(this, 'feed_info', feedInfo); }
 }
 
 module.exports = Gtfs;
