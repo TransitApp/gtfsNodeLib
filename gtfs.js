@@ -11,6 +11,14 @@ const getters = require('./helpers/getters');
 const { importTable } = require('./helpers/import');
 const schema = require('./helpers/schema');
 
+/**
+ * Table-generic function to add items in a table of a GTFS.
+ *
+ * @param {Array<Object>}  items     Array of item to add to the GTFS.
+ * @param {string}         tableName Name of the table of the GTFS in which the objects should be added.
+ * @param {Object}         gtfs      GTFS object in which to add the items.
+ */
+
 function addItems(items, tableName, gtfs) {
   if (items instanceof Array === false) {
     throw new Error(`items must be an array instead of: ${items}`);
@@ -35,6 +43,16 @@ function addItems(items, tableName, gtfs) {
   }
 }
 
+/**
+ * Table-generic function to get an indexed table of a GTFS. The indexation depends of the table, and is defined in
+ * the schema (If possible, it is the unique id).
+ *
+ * @param  {string}           tableName Name of the table of the GTFS to get.
+ * @param  {Object}           gtfs      GTFS object containing the table to get.
+ * @param  {Object|undefined} options   Configuration object passed to importTable function.
+ * @return {Object}                     Indexed table returned
+ */
+
 function getIndexedTableOfGtfs(tableName, gtfs, options) {
   if (gtfs._tables.has(tableName) === false) {
     importTable(gtfs, tableName, options);
@@ -44,9 +62,17 @@ function getIndexedTableOfGtfs(tableName, gtfs, options) {
   return gtfs._tables.get(tableName);
 }
 
+/**
+ * Table-generic function to get an iterate in a table of a GTFS.
+ *
+ * @param  {function} iterator  Function which will be applied on every item of the table.
+ * @param  {string}   tableName Name of the table of the GTFS to enumerate.
+ * @param  {Object}   gtfs      GTFS object containing the table to iterate on.
+ */
+
 function forEachItem(iterator, tableName, gtfs) {
   if (typeof iterator !== 'function') {
-    throw new Error(`iterator mulst be a function, instead of a ${typeof iterator}.`);
+    throw new Error(`iterator must be a function, instead of a ${typeof iterator}.`);
   }
 
   const indexedTable = gtfs.getIndexedTable(tableName);
@@ -65,6 +91,14 @@ function forEachItem(iterator, tableName, gtfs) {
     });
   }
 }
+
+/**
+ * Table-generic function to remove items in a table of a GTFS.
+ *
+ * @param  {Array<Object>} items     Array of item to remove of the GTFS.
+ * @param  {string}        tableName Name of the table of the GTFS in which to add the items.
+ * @param  {Object}        gtfs      GTFS object containing the table in which the object should be removed.
+ */
 
 function removeItems(items, tableName, gtfs) {
   if (items instanceof Array === false) {
@@ -92,6 +126,14 @@ function removeItems(items, tableName, gtfs) {
   }
 }
 
+/**
+ * Table-generic function to set an indexed table in the GTFS.
+ *
+ * @param  {Object} indexedItems Object properly indexed as the schema requires the table to be.
+ * @param  {string} tableName    Name of the table of the GTFS to set.
+ * @param  {Object} gtfs         GTFS object in which the table will be set.
+ */
+
 function setIndexedItems(indexedItems, tableName, gtfs) {
   if (indexedItems instanceof Map === false && schema.deepnessByTableName[tableName] !== 0) {
     throw new Error(`indexedItems must be a Map instead of: ${indexedItems}`);
@@ -101,6 +143,14 @@ function setIndexedItems(indexedItems, tableName, gtfs) {
 }
 
 class Gtfs {
+  /**
+   * Constructor of the GTFS
+   *
+   * @param  {string}           path                           Path to the folder contains the GTFS text files.
+   * @param  {Object|undefined} regexPatternObjectsByTableName Optional ad-hoc regex to fix the tables. See importTable.
+   * @return {Object}           gtfs                           Instanciated GTFS object.
+   */
+
   constructor(path, regexPatternObjectsByTableName) {
     if (typeof path !== 'string' || path.length === 0) {
       throw new Error(`Gtfs need a valid input path as string, instead of: "${path}".`);
@@ -120,12 +170,38 @@ class Gtfs {
   }
 
   /* io */
+  /**
+   * Async function exporting the GTFS at a specific path.
+   *
+   * @param  {string}   path     Path to the folder which will contains the GTFS. The folder will be created if needed.
+   * @param  {function} callback Function called when the export will be done.
+   */
   exportAtPath(path, callback) { exportGtfs(this, path, callback); }
+
+  /**
+   * Getter returning the path of the GTFS when it was imported.
+   *
+   * @return {string} Path to the imported GTFS.
+   */
   getPath() { return this._path; }
 
   /* Generic table & item manipulation */
+  /**
+   * Table-generic function to add an item in a table of the GTFS.
+   *
+   * @param {Object} item      Item to add in the GTFS.
+   * @param {string} tableName Name of the table of the GTFS in which the item will be added.
+   */
   addItemInTable(item, tableName) { addItems([item], tableName, this); }
+
+  /**
+   * Table-generic function to add items in a table of the GTFS.
+   *
+   * @param {Array<Object>} items     Array of items to add in the GTFS.
+   * @param {string}        tableName Name of the table of the GTFS in which the item will be added.
+   */
   addItemsInTable(items, tableName) { addItems(items, tableName, this); }
+
   forEachItemInTable(tableName, iterator) { forEachItem(iterator, tableName, this); }
   forEachTableName(iterator) { this.getTableNames().forEach(iterator); }
   getIndexedTable(tableName, forcedValuesByKeys) { return getIndexedTableOfGtfs(tableName, this, forcedValuesByKeys); }
