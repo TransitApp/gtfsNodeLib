@@ -10,48 +10,21 @@ const { fromCsvStringToArray } = require('./csv');
 const schema = require('./schema');
 
 /**
+ * Import a table in the GTFS.
  *
  * @param {Gtfs}   gtfs      The GTFS in which to import the table.
  * @param {string} tableName The table of the name to import.
- * @param {
- *   Map.<
- *     string,
- *     Array.<{regex: RegExp, pattern: string}>
- *   >
- * } [regexPatternObjectsByTableName] Optional ad-hoc regex to fix the tables. The keys are the tableName like defined
- *                                    in schema.js, the value are arrays containing pairs of regex and pattern to be
- *                                    applied on the raw table, before parsing. The goal is to fix some bad CSV to make
- *                                    them readable.
- *
- *                                    Example:
- *                                    The following raw is invalid according to the CSV specification:
- *
- *                                    > something,something else,a field "not" properly escaped,one last thing
- *
- *                                    It could be fixed with:
- *                                      { regex: /,a field "not" properly escaped,/g,
- *                                        pattern: ',a field ""not"" properly escaped,' }
- *
- *                                    The regexPatternObjectsByTableName would be:
- *
- *                                    regexPatternObjectsByTableName = {
- *                                      nameOfTheTable: [{
- *                                        regex: /,a field "not" properly escaped,/g,
- *                                        pattern: ',a field ""not"" properly escaped,',
- *                                      }]
- *                                    };
  */
 
-exports.importTable = (gtfs, tableName, regexPatternObjectsByTableName) => {
-  regexPatternObjectsByTableName = regexPatternObjectsByTableName || new Map();
+exports.importTable = (gtfs, tableName) => {
   const indexKeys = schema.indexKeysByTableName[tableName];
   const fullPath = `${gtfs.getPath() + tableName}.txt`;
 
   if (fs.existsSync(fullPath)) {
     const fileContent = fs.readFileSync(fullPath);
-    const rows = getRows(fileContent, regexPatternObjectsByTableName, tableName);
+    const rows = getRows(fileContent, gtfs._regexPatternObjectsByTableName.get(tableName), tableName);
 
-    gtfs._tables.set(tableName, processRows(gtfs, tableName, indexKeys, rows));
+    gtfs._tables.set(tableName, processRows(gtfs, tableName, indexKeys, rows, gtfs._shouldThrow));
     return;
   }
 
@@ -64,13 +37,12 @@ exports.importTable = (gtfs, tableName, regexPatternObjectsByTableName) => {
  * Private functions
  */
 
-function getRows(buffer, regexPatternObjectsByTableName, tableName) {
+function getRows(buffer, regexPatternObjects, tableName) {
   const rows = [];
   let rowsSlice;
   let position = 0;
   const batchLength = 50000;
   let merge;
-  const regexPatternObjects = regexPatternObjectsByTableName.get(tableName);
 
   while (position < buffer.length) {
     rowsSlice = buffer.toString('utf8', position, Math.min(buffer.length, position + batchLength));
@@ -78,10 +50,9 @@ function getRows(buffer, regexPatternObjectsByTableName, tableName) {
     if (regexPatternObjects) {
       regexPatternObjects.forEach(({regex, pattern}) => {
         const modifiedRowsSlice = rowsSlice.replace(regex, pattern || '');
+
         if (modifiedRowsSlice !== rowsSlice) {
-          process.notices.addInfo(
-            __filename, `Applying regex replace to table: "${tableName}". regex: "${regexPatternObject.regex}".`
-          );
+          process.notices.addInfo(__filename, `Applying regex replace to table: "${tableName}". regex: "${regex}".`);
           rowsSlice = modifiedRowsSlice;
         }
       });
@@ -102,7 +73,7 @@ function getRows(buffer, regexPatternObjectsByTableName, tableName) {
   return rows;
 }
 
-function processRows(gtfs, tableName, indexKeys, rows) {
+function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
   let table = new Map();
 
   if (rows === undefined || rows === null || rows.length === 0) {
@@ -124,6 +95,10 @@ function processRows(gtfs, tableName, indexKeys, rows) {
         }, {});
 
         if (sortedKeys.length !== arrayOfValues.length) {
+          if (shouldThrow === true) {
+            throw new Error(`Invalid raw in table ${tableName}: ${JSON.stringify(item)}`);
+          }
+
           process.notices.addWarning(__filename, `Row not valid in table: ${JSON.stringify(item)}`);
           return;
         }

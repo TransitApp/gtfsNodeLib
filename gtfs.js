@@ -48,16 +48,15 @@ function addItems(gtfs, tableName, items) {
  *
  * @param  {Gtfs}   gtfs      GTFS object containing the table to get.
  * @param  {string} tableName Name of the table of the GTFS to get.
- * @param  {Object} [options] Configuration object passed to importTable function.
  * @return {
  *   Object|
  *   Map.<string, Object>|
  *   Map.<string, Map.<string, Object>>
  * }                          Indexed table returned
  */
-function getIndexedTable(gtfs, tableName, options) {
+function getIndexedTable(gtfs, tableName) {
   if (gtfs._tables.has(tableName) === false) {
-    importTable(gtfs, tableName, options);
+    importTable(gtfs, tableName);
     infoLog(`[Importation] Table ${tableName} has been imported.`);
   }
 
@@ -145,14 +144,39 @@ class Gtfs {
   /**
    * Constructor of the GTFS
    *
-   * @param  {string} path Path to the folder that contains the GTFS text files.
-   * @param  {Map.<
-   *           string,
-   *           Array.<{regex: RegExp, pattern: string}>
-   *          >} [regexPatternObjectsByTableName] Optional ad-hoc regex to fix the tables. See importTable.
+   * # options.regexPatternObjectsByTableName
+   *
+   * Optional ad-hoc list of regex to fix the tables. The keys are the tableName like defined in schema.js, the value
+   * are arrays containing pairs of regex and pattern to be applied on the raw table, before parsing. The goal is to fix
+   * some bad CSV to make them readable.
+   *
+   * Example
+   *
+   * The following raw is invalid according to the CSV specification:
+   *
+   * > something,something else,a field "not" properly escaped,one last thing
+   *
+   * Assuming it is in someTable.txt, it could be fixed with the following regexPatternObjectsByTableName:
+   *
+   * regexPatternObjectsByTableName = {
+   *   nameOfTheTable: [{
+   *     regex: /,a field "not" properly escaped,/g,
+   *     pattern: ',a field ""not"" properly escaped,',
+   *   }]
+   * };
+   *
+   * # options.throws
+   *
+   * Optional ad-hoc boolean. Default is true. Will force the parser to ignore invalid rows in the tables.
+   *
+   * @param {string} path Path to the folder that contains the GTFS text files.
+   * @param {{
+   *   regexPatternObjectsByTableName: Map.<string, Array.<{regex: RegExp, pattern: string}>>,
+   *   throws: boolean
+   * }} [options] Optional. See list above.
    * @return {Gtfs} gtfs Instanciated GTFS object.
    */
-  constructor(path, regexPatternObjectsByTableName) {
+  constructor(path, {regexPatternObjectsByTableName = new Map(), throws = true} = {}) {
     if (typeof path !== 'string' || path.length === 0) {
       throw new Error(`Gtfs need a valid input path as string, instead of: "${path}".`);
     }
@@ -166,7 +190,8 @@ class Gtfs {
     this.isGtfs = true;
 
     this._path = path;
-    this._regexPatternObjectsByTableName = regexPatternObjectsByTableName || {};
+    this._regexPatternObjectsByTableName = regexPatternObjectsByTableName;
+    this._shouldThrow = throws;
     this._tables = new Map();
   }
 
