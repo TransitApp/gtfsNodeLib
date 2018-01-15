@@ -250,10 +250,9 @@ class Gtfs {
    * the schema (see schema.js).
    *
    * @param  {string} tableName Name of the table of the GTFS to get.
-   * @param  {Object} [options] Configuration object passed to importTable function.
    * @return {Object}           Indexed table returned
    */
-  getIndexedTable(tableName, options) { return getIndexedTable(this, tableName, options); }
+  getIndexedTable(tableName) { return getIndexedTable(this, tableName); }
 
   /**
    * Get an item of a table using its index.
