@@ -533,7 +533,7 @@ describe('Tests on GTFS', () => {
 
     expect(sortedKeys(gtfs.getIndexedTransfers())).to.deep.equal(['stop_0', 'stop_1']);
 
-    const transfer01 = gtfs.getTransfertWithFromStopIdAndToStopId('stop_0', 'stop_1');
+    const transfer01 = gtfs.getTransferWithFromStopIdAndToStopId('stop_0', 'stop_1');
     expect(transfer01.transfer_type).to.equal('0');
 
     gtfs.addTransfer({ from_stop_id: 'stop_2', to_stop_id: 'stop_0', transfer_type: '3' });
@@ -545,12 +545,12 @@ describe('Tests on GTFS', () => {
     ]);
     expect(sortedKeys(gtfs.getIndexedTransfers())).to.deep.equal(['stop_0', 'stop_1', 'stop_2', 'stop_3', 'stop_4']);
 
-    gtfs.removeTransfer(gtfs.getTransfertWithFromStopIdAndToStopId('stop_0', 'stop_1'));
+    gtfs.removeTransfer(gtfs.getTransferWithFromStopIdAndToStopId('stop_0', 'stop_1'));
     expect(sortedKeys(gtfs.getIndexedTransfers())).to.deep.equal(['stop_1', 'stop_2', 'stop_3', 'stop_4']);
 
     gtfs.removeTransfers([
-      gtfs.getTransfertWithFromStopIdAndToStopId('stop_1', 'stop_0'),
-      gtfs.getTransfertWithFromStopIdAndToStopId('stop_3', 'stop_0'),
+      gtfs.getTransferWithFromStopIdAndToStopId('stop_1', 'stop_0'),
+      gtfs.getTransferWithFromStopIdAndToStopId('stop_3', 'stop_0'),
     ]);
     expect(sortedKeys(gtfs.getIndexedTransfers())).to.deep.equal(['stop_2', 'stop_4']);
 
@@ -565,9 +565,9 @@ describe('Tests on GTFS', () => {
       ])],
     ]));
     expect(sortedKeys(gtfs.getIndexedTransfers())).to.deep.equal(['stop_0', 'stop_1']);
-    const transfer02 = gtfs.getTransfertWithFromStopIdAndToStopId('stop_0', 'stop_2');
+    const transfer02 = gtfs.getTransferWithFromStopIdAndToStopId('stop_0', 'stop_2');
     expect(transfer02.transfer_type).to.equal('3');
-    const transfer10 = gtfs.getTransfertWithFromStopIdAndToStopId('stop_1', 'stop_0');
+    const transfer10 = gtfs.getTransferWithFromStopIdAndToStopId('stop_1', 'stop_0');
     expect(transfer10.transfer_type).to.equal('1');
 
     const transferTypes = [];
