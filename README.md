@@ -1,4 +1,4 @@
-# Node.js light GTFS object
+# Node.js light GTFS loading and manipulation
 A Node.js naive library to load and manipulate GTFS datasets.
 
 ## Installation
@@ -90,9 +90,9 @@ but for the `shapes.txt`, since one item of the table is not a "shape" per-se, b
 
 ## Support and contact
 
-Please post any issue you can find on[the repo of the project](https://github.com/TransitApp/gtfsNodeLib/issues). And 
-do not hesitate to contact[Transit App](github.com/TransitApp)or directly[Leo Frachet](github.com/LeoFrachet)if you have
-any questions.
+Please post any issue you can find on [the repo of the project](https://github.com/TransitApp/gtfsNodeLib/issues). And 
+do not hesitate to contact [Transit App](github.com/TransitApp) or directly Leo Frachet](github.com/LeoFrachet) if you
+have any questions.
 
 
 
