@@ -73,7 +73,7 @@ function fromCsvStringToArray(string, tableName) {
       return fromCsvStringToArray(string, tableName);
     }
     process.notices.addWarning(__filename, `Row not valid in table ${tableName}: ${string}`);
-    return null;
+    return [];
   }
 
   const a = []; // Initialize array to receive values.
@@ -85,7 +85,7 @@ function fromCsvStringToArray(string, tableName) {
         /* else */
     if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
     else if (m3 !== undefined) a.push(m3);
-    return ''; // Return empty string.
+    return []; // Return empty string.
   });
     // Handle special case of empty last value.
   if (/,\s*$/.test(string)) {

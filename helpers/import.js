@@ -9,16 +9,22 @@ const eachWithLog = require('./logging_iterator_wrapper');
 const { fromCsvStringToArray } = require('./csv');
 const schema = require('./schema');
 
-exports.importTable = (gtfs, tableName, options) => {
-  options = options || {};
-  const indexKeys = options.indexKeys || schema.indexKeysByTableName[tableName];
+/**
+ * Import a table in the GTFS.
+ *
+ * @param {Gtfs}   gtfs      The GTFS in which to import the table.
+ * @param {string} tableName The table of the name to import.
+ */
+
+exports.importTable = (gtfs, tableName) => {
+  const indexKeys = schema.indexKeysByTableName[tableName];
   const fullPath = `${gtfs.getPath() + tableName}.txt`;
 
   if (fs.existsSync(fullPath)) {
     const fileContent = fs.readFileSync(fullPath);
-    const rows = getRows(fileContent, gtfs._regexPatternObjectsByTableName, tableName);
+    const rows = getRows(fileContent, gtfs._regexPatternObjectsByTableName.get(tableName), tableName);
 
-    gtfs._tables.set(tableName, processRows(gtfs, tableName, indexKeys, rows));
+    gtfs._tables.set(tableName, processRows(gtfs, tableName, indexKeys, rows, gtfs._shouldThrow));
     return;
   }
 
@@ -31,24 +37,22 @@ exports.importTable = (gtfs, tableName, options) => {
  * Private functions
  */
 
-function getRows(buffer, regexPatternObjectsByTableName, tableName) {
+function getRows(buffer, regexPatternObjects, tableName) {
   const rows = [];
   let rowsSlice;
   let position = 0;
   const batchLength = 50000;
   let merge;
-  const regexPatternObjects = regexPatternObjectsByTableName[tableName];
 
   while (position < buffer.length) {
     rowsSlice = buffer.toString('utf8', position, Math.min(buffer.length, position + batchLength));
 
     if (regexPatternObjects) {
-      regexPatternObjects.forEach((regexPatternObject) => {
-        const modifiedRowsSlice = rowsSlice.replace(regexPatternObject.regex, regexPatternObject.pattern || '');
+      regexPatternObjects.forEach(({regex, pattern}) => {
+        const modifiedRowsSlice = rowsSlice.replace(regex, pattern || '');
+
         if (modifiedRowsSlice !== rowsSlice) {
-          process.notices.addInfo(
-            __filename, `Applying regex replace to table: "${tableName}". regex: "${regexPatternObject.regex}".`
-          );
+          process.notices.addInfo(__filename, `Applying regex replace to table: "${tableName}". regex: "${regex}".`);
           rowsSlice = modifiedRowsSlice;
         }
       });
@@ -69,7 +73,7 @@ function getRows(buffer, regexPatternObjectsByTableName, tableName) {
   return rows;
 }
 
-function processRows(gtfs, tableName, indexKeys, rows) {
+function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
   let table = new Map();
 
   if (rows === undefined || rows === null || rows.length === 0) {
@@ -91,6 +95,10 @@ function processRows(gtfs, tableName, indexKeys, rows) {
         }, {});
 
         if (sortedKeys.length !== arrayOfValues.length) {
+          if (shouldThrow === true) {
+            throw new Error(`Invalid raw in table ${tableName}: ${JSON.stringify(item)}`);
+          }
+
           process.notices.addWarning(__filename, `Row not valid in table: ${JSON.stringify(item)}`);
           return;
         }

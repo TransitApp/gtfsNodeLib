@@ -1,6 +1,6 @@
 {
   "name": "@transit/gtfs",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "A Node.js librairie for GTFS",
   "main": "index.js",
   "scripts": {
