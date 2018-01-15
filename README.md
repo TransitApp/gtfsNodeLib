@@ -7,12 +7,12 @@ A Node.js naive library to load and manipulate GTFS datasets.
 
 ## Usage
 
-The tables of the GTFS will be loaded only when accessed, and not upfront. This allow to manipulate the small tables
-(like routes.txt or stops.txt) without having to load the big tables (like stop_times).
+The tables of the GTFS will be loaded only when accessed, and not upfront. This allows manipulation of the small tables
+(like routes.txt or stops.txt) without having to load the big tables (like stop_times.txt).
 
 ## Example
 
-If you want to remove all the stops called 'Central Station' and the stop_times using this stop.
+If you want to remove all the stops called 'Central Station' and the stop_times using this stop:
 
 ```js
 const { Gtfs } = require('@transit/gtfs');
@@ -48,19 +48,19 @@ gtfs.exportAtPath('somePathWhereYouWantToExportTheGtfs', (error) => {
 });
 ```
 
-## To keep in mind: sync load and indexation
+## Keep in mind: synchronous loading and indexes
 
-The implementation is Transit's old GTFS implementation, using callbacks and plain object. The main advantage is that 
-is it light and simple to use, but it has some drawbacks. The two biggest ones are the indexation and the sync load.
+This project is Transit's old GTFS implementation, using callbacks and plain objects. The main advantage is that 
+is it light and simple to use, but it has some drawbacks. The two biggest ones are the indexes and the synchronous loading of tables.
 
-### Indexation
+### Indexes
 
-The tables are loaded and save as Map, to allow o(1) access using the ids. The routes are therefore indexed by the 
-`route_id` value, which is therefore save in `route.route_id` but also as index.
+The tables are loaded and saved as Maps, to allow o(1) access using the ids. The routes are therefore indexed by the 
+`route_id` value, which is therefore saved in `route.route_id` but also as an index.
 
-**This indexation is not automatically kept up to date.**
+**This indexing is not automatically kept up to date.**
 
-If you change the `route_id` just by changing the internal value of the `route` the indexation **won't** be updated, and
+If you change the `route_id` just by changing the internal value of the `route` the index **won't** be updated, and
 therefore the table will be corrupted. To properly update the id of a route, you should replace it:
 
 ```js
@@ -70,19 +70,18 @@ route.route_id = 'newId';
 gtfs.addRoute(route);
 ```
 
-### Sync loading
+### Synchronous loading
 
-The goal of this implementation was to avoid to load upfront all the tables. Therefore, they will be loaded only when
-required. This makes the code faster to run (if some table are not required at all).
+The goal of this implementation was to avoid loading upfront all the tables. Therefore, they are loaded only when
+required. This makes the code faster to run (if some tables are not required at all).
 
-The drawback, is that any function could trigger the loading of a table. Since we do not want to turn any function in
-an async one, the loading of the table are done synchronously. 
+The drawback, is that any function could trigger the loading of a table. Since we do not want to turn every function into an async one, the loading of the tables is done synchronously. 
 
 ## Naming
 
-The wording used in the official GTFS specification has been followed as much as possible, including the inconsistency.
+The wording used in the official GTFS specification has been followed as much as possible, including the inconsistencies.
 For example, the table containing the stops is "stops", but the table containing the agencies is "agency". The reason
-is that according to the specification, the files are `stops.txt` vs `agency.txt`.
+for this being that, in the specification, the files are named `stops.txt` vs `agency.txt`.
 
 Most of the time, the name of one item of a table is the singular of the table name (routes -> route, stops -> stop),
 but for the `shapes.txt`, since one item of the table is not a "shape" per-se, but just a point, the name used is
@@ -90,9 +89,8 @@ but for the `shapes.txt`, since one item of the table is not a "shape" per-se, b
 
 ## Support and contact
 
-Please post any issue you can find on [the repo of the project](https://github.com/TransitApp/gtfsNodeLib/issues). And 
-do not hesitate to contact [Transit App](https://github.com/TransitApp) or directly
-[Leo Frachet](https://github.com/LeoFrachet) if you have any questions.
+Please post any issues you find on [the repo of the project](https://github.com/TransitApp/gtfsNodeLib/issues). And 
+do not hesitate to contact [Transit App](https://github.com/TransitApp) or [Leo Frachet](https://github.com/LeoFrachet) directly if you have any questions.
 
 
 
