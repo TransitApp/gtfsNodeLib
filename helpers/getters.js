@@ -2,6 +2,15 @@
 
 const schema = require('./schema');
 
+/**
+ * Get the grand parent item using one of its child.
+ *
+ * @param {Object} itemWithForeignIndexId The child item.
+ * @param {string} parentTableName        The name of the table containing the parent item.
+ * @param {string} grandParentTableName   The name of the table containing the grand parent item.
+ * @param {Gtfs} gtfs                     The GTFS containing the parent item
+ * @return {Object}                       The grand parent item.
+ */
 function getGrandParentItem(itemWithForeignIndexId, parentTableName, grandParentTableName, gtfs) {
   if (
     itemWithForeignIndexId === undefined ||
@@ -40,6 +49,14 @@ function getGrandParentItem(itemWithForeignIndexId, parentTableName, grandParent
   return gtfs.getItemWithIndexInTable(parentItem[grandParentIndexKey], grandParentTableName);
 }
 
+/**
+ * Get the child items of an item.
+ *
+ * @param {Object} parentItem     The parent item.
+ * @param {string} tableName      The name of the table containing the child items.
+ * @param {Gtfs} gtfs             The GTFS containing the child items.
+ * @return {Map.<string, Object>} Indexed child items.
+ */
 function getIndexedItemsWithParent(parentItem, tableName, gtfs) {
   if (schema.deepnessByTableName[tableName] !== 2) {
     throw new Error(`Table "${tableName}" is not of deepness 2.`);
@@ -59,6 +76,14 @@ function getIndexedItemsWithParent(parentItem, tableName, gtfs) {
   return indexedTable.get(parentItem[firstIndexKey]);
 }
 
+/**
+ * Get the child items of an item using its index.
+ *
+ * @param {Object} parentIndex    The parent item's index.
+ * @param {string} tableName      The name of the table containing the child items.
+ * @param {Gtfs} gtfs             The GTFS containing the child items.
+ * @return {Map.<string, Object>} Indexed child items.
+ */
 function getIndexedItemsWithParentIndex(parentIndex, tableName, gtfs) {
   if (schema.deepnessByTableName[tableName] !== 2) {
     throw new Error(`Table "${tableName}" is not of deepness 2.`);
@@ -122,6 +147,14 @@ function getItemWithIndexes(firstIndex, secondIndex, tableName, gtfs) {
   return (indexedTable.has(firstIndex)) ? indexedTable.get(firstIndex).get(secondIndex) : null;
 }
 
+/**
+ * Get the parent item using one of its child.
+ *
+ * @param {Object} itemWithForeignIndexId The child item.
+ * @param {string} tableName              The name of the table containing the parent item.
+ * @param {Gtfs} gtfs                     The GTFS containing the parent item
+ * @return {Object}                       The parent item.
+ */
 function getParentItem(itemWithForeignIndexId, tableName, gtfs) {
   if (
     itemWithForeignIndexId === undefined ||
