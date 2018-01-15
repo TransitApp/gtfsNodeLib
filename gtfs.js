@@ -269,7 +269,7 @@ class Gtfs {
   addTransfers(transfers) { addItems(transfers, 'transfers', this); }
   forEachTransfer(iterator) { forEachItem(iterator, 'transfers', this); }
   getIndexedTransfers() { return getIndexedTableOfGtfs('transfers', this); }
-  getTransfertWithFromStopIdAndToStopId(fromStopId, toStopId) {
+  getTransferWithFromStopIdAndToStopId(fromStopId, toStopId) {
     return getters.getItemWithIndexes(fromStopId, toStopId, 'transfers', this);
   }
   removeTransfer(transfer) { removeItems([transfer], 'transfers', this); }
