@@ -204,7 +204,7 @@ class Gtfs {
    * @param  {string}   path     Path to the folder which will contain the GTFS. The folder will be created if needed.
    * @param  {function} callback Function called when the export will be done.
    */
-  exportAtPath(path, callback) { exportGtfs(this, path, callback); }
+  exportAtPath(path, callback) { return exportGtfs(this, path, callback); }
 
   /**
    * Getter returning the path of the GTFS when it was imported.
@@ -274,6 +274,13 @@ class Gtfs {
    * @return {Set.<string>} Array of the table names
    */
   getTableNames() { return new Set([...schema.tableNames, ...this._tables.keys()]); }
+
+  /**
+   * Get the schema of the GTFS. For safety, the schema is cloned before beeing passed.
+   *
+   * @return {Object} The schema
+   */
+  static getSchema() { return JSON.parse(JSON.stringify(schema)); }
 
   /**
    * Build the list of the keys used in a table of the GTFS. Since the GTFS specification allows any additional field,
