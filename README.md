@@ -31,7 +31,7 @@ gtfs.forEachStopTime((stopTime) => {
   }
 });
 
-// Let's also clean up the frequencies, to keep a consistence GTFS.
+// Let's also clean up the frequencies, to keep a consistent GTFS.
 gtfs.forEachFrequency((frequency) => {
   const fromStop = gtfs.getStopWithId(frequency.from_stop_id);
   const toStop = gtfs.getStopWithId(frequency.to_stop_id);
