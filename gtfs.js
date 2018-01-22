@@ -169,7 +169,7 @@ class Gtfs {
    *
    * Optional ad-hoc boolean. Default is true. Will force the parser to ignore invalid rows in the tables.
    *
-   * @param {string} path Path to the folder that contains the GTFS text files.
+   * @param {string} [path] Path to the folder that contains the GTFS text files.
    * @param {{
    *   regexPatternObjectsByTableName: Map.<string, Array.<{regex: RegExp, pattern: string}>>,
    *   throws: boolean
@@ -177,14 +177,16 @@ class Gtfs {
    * @return {Gtfs} gtfs Instanciated GTFS object.
    */
   constructor(path, {regexPatternObjectsByTableName = new Map(), throws = true} = {}) {
-    if (typeof path !== 'string' || path.length === 0) {
-      throw new Error(`Gtfs need a valid input path as string, instead of: "${path}".`);
-    }
+    if (path !== undefined) {
+      if (typeof path !== 'string' || path.length === 0) {
+        throw new Error(`Gtfs need a valid input path as string, instead of: "${path}".`);
+      }
 
-    path = (path[path.length - 1] === '/') ? path : `${path}/`;
+      path = (path[path.length - 1] === '/') ? path : `${path}/`;
 
-    if (fs.existsSync(path) === false) {
-      throw new Error(`inputPath: "${path}" is not a valid folder.`);
+      if (fs.existsSync(path) === false) {
+        throw new Error(`inputPath: "${path}" is not a valid folder.`);
+      }
     }
 
     this.isGtfs = true;
