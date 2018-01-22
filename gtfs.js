@@ -274,6 +274,15 @@ class Gtfs {
   getTableNames() { return new Set([...schema.tableNames, ...this._tables.keys()]); }
 
   /**
+   * Build the list of the keys used in a table of the GTFS. Since the GTFS specification allows any additional field,
+   * this function allows to explore those additional values.
+   *
+   * @param {string} tableName Table of the GTFS of which we want to key.
+   * @return {Array.<string>}  Keys used by the items of the table.
+   */
+  getActualKeysForTable(tableName) { return getters.getActualKeysForTable(this, tableName); }
+
+  /**
    * Get the parent item using one of its child.
    *
    * @param {Object} item      The child item.

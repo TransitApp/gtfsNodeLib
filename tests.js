@@ -662,6 +662,26 @@ describe('Tests on GTFS', () => {
 
     done();
   });
+
+  // eslint-disable-next-line no-undef
+  it('Test getters helpers: getActualKeysForTable', (done) => {
+    const gtfs = new Gtfs();
+    const funkyStop = {};
+    gtfs.addStop(funkyStop);
+
+    expect(Gtfs.getSchema().keysByTableName.stops).to.deep.equal(gtfs.getActualKeysForTable('stops'));
+
+    funkyStop.route_funky_name = 'Tshboom tshboom';
+    funkyStop.route_esoteric_float = 120.37;
+    const standardRouteKeys = Gtfs.getSchema().keysByTableName.stops;
+    const actualRouteKeys = gtfs.getActualKeysForTable('stops');
+
+    expect(standardRouteKeys).to.not.deep.equal(actualRouteKeys);
+
+    expect([...standardRouteKeys, 'route_funky_name', 'route_esoteric_float']).to.deep.equal(actualRouteKeys);
+
+    done();
+  });
 });
 
 function sortedKeys(map) {

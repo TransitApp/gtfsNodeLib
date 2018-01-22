@@ -3,6 +3,44 @@
 const schema = require('./schema');
 
 /**
+ * Build the list of the keys used in a table of the GTFS. Since the GTFS specification allows any additional field,
+ * this function allows to explore those additional values.
+ *
+ * @param {Gtfs}   gtfs      GTFS containing the table.
+ * @param {string} tableName Table of the GTFS of which we want to key.
+ * @return {Array.<string>}  Keys used by the items of the table.
+ */
+function getActualKeysForTable(gtfs, tableName) {
+  const getSample = iterable => ((iterable && iterable.values().next()) ? iterable.values().next().value : undefined);
+  const keys = [...schema.keysByTableName[tableName]];
+  const deepness = schema.deepnessByTableName[tableName];
+  const table = gtfs.getIndexedTable(tableName);
+  let sampleItem;
+
+  if (deepness === 0) {
+    sampleItem = table;
+  } else if (deepness === 1) {
+    sampleItem = getSample(table);
+  } else if (deepness === 2) {
+    sampleItem = getSample(getSample(table));
+  }
+
+  if (sampleItem) {
+    Object.keys(sampleItem).forEach((key) => {
+      if (schema.keysByTableName[tableName].includes(key) === false) {
+        keys.push(key);
+      }
+    });
+  }
+
+  if (keys.length === 0) {
+    throw new Error(`No keys found for table ${tableName}`);
+  }
+
+  return keys;
+}
+
+/**
  * Get the grand parent item using one of its child.
  *
  * @param {Object} itemWithForeignIndexId The child item.
@@ -177,6 +215,7 @@ function getParentItem(itemWithForeignIndexId, tableName, gtfs) {
 }
 
 module.exports = {
+  getActualKeysForTable,
   getGrandParentItem,
   getIndexedItemsWithParent,
   getIndexedItemsWithParentIndex,

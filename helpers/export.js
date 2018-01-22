@@ -16,10 +16,6 @@ const schema = require('./schema');
  * Private functions
  */
 
-function getSample(iterable) {
-  return (iterable && iterable.values().next()) ? iterable.values().next().value : undefined;
-}
-
 function getHHmmss() {
   const date = new Date();
   return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
@@ -70,37 +66,8 @@ function copyUntouchedTable(inputPath, outputPath, tableName, callback) {
   });
 }
 
-function getActualKeysForTable(gtfs, tableName) {
-  const keys = [...schema.keysByTableName[tableName]];
-  const deepness = schema.deepnessByTableName[tableName];
-  const table = gtfs.getIndexedTable(tableName);
-  let sampleItem;
-
-  if (deepness === 0) {
-    sampleItem = table;
-  } else if (deepness === 1) {
-    sampleItem = getSample(table);
-  } else if (deepness === 2) {
-    sampleItem = getSample(getSample(table));
-  }
-
-  if (sampleItem) {
-    Object.keys(sampleItem).forEach((key) => {
-      if (schema.keysByTableName[tableName].includes(key) === false) {
-        keys.push(key);
-      }
-    });
-  }
-
-  if (keys.length === 0) {
-    throw new Error(`No keys found for table ${tableName}`);
-  }
-
-  return keys;
-}
-
 function exportTable(tableName, gtfs, outputPath, callback) {
-  const keys = getActualKeysForTable(gtfs, tableName);
+  const keys = gtfs.getActualKeysForTable(tableName);
   const outputFullPath = `${outputPath + tableName}.txt`;
   const firstRow = `${keys.join(',')}\n`;
 
