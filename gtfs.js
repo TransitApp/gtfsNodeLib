@@ -170,6 +170,12 @@ class Gtfs {
    *
    * Optional ad-hoc boolean. Default is true. Will force the parser to ignore invalid rows in the tables.
    *
+   *
+   * # options.postImportTableFunction
+   *
+   * Optional ad-hoc function which will be applied on every item of every table after importation.
+   *
+   *
    * # options.forcedSchema
    *
    * Will overwrite the default schema by the value passed.
@@ -179,6 +185,7 @@ class Gtfs {
    * @param {{
    *   regexPatternObjectsByTableName: Map.<string, Array.<{regex: RegExp, pattern: string}>>,
    *   throws: boolean,
+   *   postImportTableFunction: function,
    *   forcedSchema,
    * }} [options] Optional. See list above.
    * @return {Gtfs} gtfs Instanciated GTFS object.

@@ -24,12 +24,15 @@ exports.importTable = (gtfs, tableName) => {
     const rows = getRows(fileContent, gtfs._regexPatternObjectsByTableName.get(tableName), tableName);
 
     gtfs._tables.set(tableName, processRows(gtfs, tableName, indexKeys, rows, gtfs._shouldThrow));
-    return;
+  } else {
+    infoLog(`Empty table will be set for table ${tableName} (no input file at path ${gtfs._path}).`);
+
+    gtfs._tables.set(tableName, new Map());
   }
 
-  infoLog(`Empty table will be set for table ${tableName} (no input file at path ${gtfs._path}).`);
-
-  gtfs._tables.set(tableName, new Map());
+  if (gtfs._postImportTableFunction) {
+    gtfs.forEachItemInTable(tableName, gtfs._postImportTableFunction);
+  }
 };
 
 /**
