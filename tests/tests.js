@@ -6,7 +6,7 @@
 const { expect } = require('chai');
 const fs = require('fs-extra');
 
-const { Gtfs } = require('./index');
+const { Gtfs } = require('../index');
 
 describe('Tests on GTFS', () => {
   it('Test on meta functions', (done) => {

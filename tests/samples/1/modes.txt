@@ -1,0 +1,2 @@
+mode_id,mode_name,mode_url,mode_timezone,mode_lang,mode_phone,mode_fare_url,mode_email
+mode_0,mode 0,http://google.com,America/New_York,en,(310) 555-0222,http://google.com,contact@google.com

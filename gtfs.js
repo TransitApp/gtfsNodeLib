@@ -213,7 +213,7 @@ class Gtfs {
     this._shouldThrow = throws;
     this._postImportTableFunction = postImportTableFunction;
     this._tables = new Map();
-    this._schema = defaultSchema || forcedSchema;
+    this._schema = forcedSchema || defaultSchema;
   }
 
   /* Input/Output */
