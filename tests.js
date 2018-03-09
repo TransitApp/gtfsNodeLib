@@ -1,16 +1,14 @@
 'use strict';
+
 /* Run the tests with mocha: mocha tests.js */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-
 const { expect } = require('chai');
 const fs = require('fs-extra');
 
 const { Gtfs } = require('./index');
 
-// eslint-disable-next-line no-undef
 describe('Tests on GTFS', () => {
-  // eslint-disable-next-line no-undef
   it('Test on meta functions', (done) => {
     const path = `${__dirname}/samples/1/`;
     const gtfs = new Gtfs(path);
@@ -21,7 +19,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Test on generic table functions', (done) => {
     const path = `${__dirname}/samples/1/`;
     const gtfs = new Gtfs(path);
@@ -78,7 +75,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on agencies', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -119,7 +115,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on stops', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -162,7 +157,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on routes', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -207,7 +201,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on trips', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -248,7 +241,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on stop times', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -312,7 +304,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on calendars', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -357,7 +348,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on calendar dates', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -418,7 +408,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on shapes', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -475,7 +464,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on frequencies', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -526,7 +514,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on transfers', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -579,7 +566,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on feed info', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -597,7 +583,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on exporting', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
@@ -642,7 +627,6 @@ describe('Tests on GTFS', () => {
     });
   });
 
-  // eslint-disable-next-line no-undef
   it('Tests on the regex/pattern applied to fix a bad CSV', (done) => {
     const path = `${__dirname}/samples/2/`;
     const gtfsWithoutFix = new Gtfs(path);
@@ -663,7 +647,6 @@ describe('Tests on GTFS', () => {
     done();
   });
 
-  // eslint-disable-next-line no-undef
   it('Test getters helpers: getActualKeysForTable', (done) => {
     const gtfs = new Gtfs();
     const funkyStop = {};
