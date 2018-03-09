@@ -4,6 +4,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { expect } = require('chai');
+const fs = require('fs-extra');
 
 const { Gtfs } = require('../index');
 
@@ -36,13 +37,68 @@ describe('Tests on GTFS constructor options', () => {
 
   it('Test on postImportTableFunction', (done) => {
     const path = `${__dirname}/samples/1/`;
-    const postImportTableFunction = (item) => { item.temp = 'some value'; };
-    const gtfs = new Gtfs(path, { postImportTableFunction });
+    const postImportItemFunction = (item) => { item.temp = 'some value'; };
+    const gtfs = new Gtfs(path, { postImportItemFunction });
 
-    const route = gtfs.getRouteWithId('route_0')
+    const route = gtfs.getRouteWithId('route_0');
 
     expect(route.temp).to.equal('some value');
 
-    done();
+    const outputPath = `${__dirname}/temp_4865de67d01696s48dfbd0e71adx8f0b/`;
+    gtfs.exportAtPath(outputPath, (exportError) => {
+      if (exportError) { throw exportError; }
+
+      fs.readFile(`${outputPath}routes.txt`, (readRoutesError, routesTxt) => {
+        if (readRoutesError) { throw readRoutesError; }
+
+        expect(String(routesTxt)).to.equal(
+          'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
+          'route_text_color,route_sort_order,temp\n' +
+          'route_0,agency_0,R0,Route 0,,3,,,,,some value\n'
+        );
+
+        fs.remove(outputPath, (removeError) => {
+          if (removeError) { throw removeError; }
+
+          done();
+        });
+      });
+    });
+  });
+
+  it('Test on postImportTableFunction', (done) => {
+    const path = `${__dirname}/samples/1/`;
+    const postImportItemFunction = (item) => { item.temp = { key: 'value' }; };
+    const preExportItemFunction = (item) => {
+      const item2 = JSON.parse(JSON.stringify(item));
+      item2.temp = JSON.stringify(item.temp);
+      return item2;
+    };
+    const gtfs = new Gtfs(path, { postImportItemFunction, preExportItemFunction });
+
+    const route = gtfs.getRouteWithId('route_0');
+
+    expect(route.temp).to.deep.equal({ key: 'value' });
+
+    const outputPath = `${__dirname}/temp_4865de67d01f96s489fbd0e71ad88f0b/`;
+    gtfs.exportAtPath(outputPath, (exportError) => {
+      if (exportError) { throw exportError; }
+
+      fs.readFile(`${outputPath}routes.txt`, (readRoutesError, routesTxt) => {
+        if (readRoutesError) { throw readRoutesError; }
+
+        expect(String(routesTxt)).to.equal(
+          'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
+          'route_text_color,route_sort_order,temp\n' +
+          'route_0,agency_0,R0,Route 0,,3,,,,,"{""key"":""value""}"\n'
+        );
+
+        fs.remove(outputPath, (removeError) => {
+          if (removeError) { throw removeError; }
+
+          done();
+        });
+      });
+    });
   });
 });

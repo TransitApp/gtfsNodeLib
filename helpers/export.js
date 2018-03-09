@@ -82,7 +82,11 @@ function exportTable(tableName, gtfs, outputPath, callback) {
     const deepness = gtfs._schema.deepnessByTableName[tableName];
 
     if (deepness === 0) {
-      const row = fromObjectToCsvString(gtfs.getIndexedTable(tableName), keys);
+      let item = gtfs.getIndexedTable(tableName);
+      if (gtfs._preExportItemFunction) {
+        item = gtfs._preExportItemFunction(item);
+      }
+      const row = fromObjectToCsvString(item, keys);
       fs.appendFile(outputFullPath, row, callback);
       return;
     }
@@ -91,9 +95,15 @@ function exportTable(tableName, gtfs, outputPath, callback) {
 
     async.eachSeries(gtfs.getIndexedTable(tableName), acomb.ensureAsync(([key, object], subDone) => {
       if (deepness === 1) {
+        if (gtfs._preExportItemFunction) {
+          object = gtfs._preExportItemFunction(object);
+        }
         rowsBuffer.push(fromObjectToCsvString(object, keys));
       } else if (deepness === 2) {
         object.forEach((subObject) => {
+          if (gtfs._preExportItemFunction) {
+            subObject = gtfs._preExportItemFunction(subObject);
+          }
           rowsBuffer.push(fromObjectToCsvString(subObject, keys));
         });
       }

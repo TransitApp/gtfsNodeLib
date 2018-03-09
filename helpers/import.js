@@ -30,8 +30,8 @@ exports.importTable = (gtfs, tableName) => {
     gtfs._tables.set(tableName, new Map());
   }
 
-  if (gtfs._postImportTableFunction) {
-    gtfs.forEachItemInTable(tableName, gtfs._postImportTableFunction);
+  if (gtfs._postImportItemFunction) {
+    gtfs.forEachItemInTable(tableName, gtfs._postImportItemFunction);
   }
 };
 
@@ -50,7 +50,7 @@ function getRows(buffer, regexPatternObjects, tableName) {
     rowsSlice = buffer.toString('utf8', position, Math.min(buffer.length, position + batchLength));
 
     if (regexPatternObjects) {
-      regexPatternObjects.forEach(({regex, pattern}) => {
+      regexPatternObjects.forEach(({ regex, pattern }) => {
         const modifiedRowsSlice = rowsSlice.replace(regex, pattern || '');
 
         if (modifiedRowsSlice !== rowsSlice) {

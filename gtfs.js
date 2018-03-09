@@ -185,14 +185,21 @@ class Gtfs {
    * @param {{
    *   regexPatternObjectsByTableName: Map.<string, Array.<{regex: RegExp, pattern: string}>>,
    *   throws: boolean,
-   *   postImportTableFunction: function,
    *   forcedSchema,
+   *   postImportItemFunction: function,
+   *   preExportItemFunction: function,
    * }} [options] Optional. See list above.
    * @return {Gtfs} gtfs Instanciated GTFS object.
    */
   constructor(
     path,
-    { regexPatternObjectsByTableName = new Map(), throws = true, postImportTableFunction, forcedSchema } = {}
+    {
+      regexPatternObjectsByTableName = new Map(),
+      throws = true,
+      forcedSchema,
+      postImportItemFunction,
+      preExportItemFunction,
+    } = {}
   ) {
     if (path !== undefined) {
       if (typeof path !== 'string' || path.length === 0) {
@@ -211,7 +218,8 @@ class Gtfs {
     this._path = path;
     this._regexPatternObjectsByTableName = regexPatternObjectsByTableName;
     this._shouldThrow = throws;
-    this._postImportTableFunction = postImportTableFunction;
+    this._postImportItemFunction = postImportItemFunction;
+    this._preExportItemFunction = preExportItemFunction;
     this._tables = new Map();
     this._schema = forcedSchema || defaultSchema;
   }
