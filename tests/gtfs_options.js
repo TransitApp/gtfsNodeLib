@@ -33,4 +33,16 @@ describe('Tests on GTFS constructor options', () => {
 
     done();
   });
+
+  it('Test on postImportTableFunction', (done) => {
+    const path = `${__dirname}/samples/1/`;
+    const postImportTableFunction = (item) => { item.temp = 'some value'; };
+    const gtfs = new Gtfs(path, { postImportTableFunction });
+
+    const route = gtfs.getRouteWithId('route_0')
+
+    expect(route.temp).to.equal('some value');
+
+    done();
+  });
 });
