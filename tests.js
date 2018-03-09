@@ -669,11 +669,11 @@ describe('Tests on GTFS', () => {
     const funkyStop = {};
     gtfs.addStop(funkyStop);
 
-    expect(Gtfs.getSchema().keysByTableName.stops).to.deep.equal(gtfs.getActualKeysForTable('stops'));
+    expect(gtfs.getSchema().keysByTableName.stops).to.deep.equal(gtfs.getActualKeysForTable('stops'));
 
     funkyStop.route_funky_name = 'Tshboom tshboom';
     funkyStop.route_esoteric_float = 120.37;
-    const standardRouteKeys = Gtfs.getSchema().keysByTableName.stops;
+    const standardRouteKeys = gtfs.getSchema().keysByTableName.stops;
     const actualRouteKeys = gtfs.getActualKeysForTable('stops');
 
     expect(standardRouteKeys).to.not.deep.equal(actualRouteKeys);

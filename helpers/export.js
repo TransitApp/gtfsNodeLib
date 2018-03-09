@@ -10,7 +10,6 @@ const errorLog = require('debug')('gtfsNodeLib:e');
 const fs = require('fs-extra');
 
 const { fromObjectToCsvString } = require('./csv');
-const schema = require('./schema');
 
 /**
  * Private functions
@@ -80,7 +79,7 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       will be fixed.
       2015-03-10
     */
-    const deepness = schema.deepnessByTableName[tableName];
+    const deepness = gtfs._schema.deepnessByTableName[tableName];
 
     if (deepness === 0) {
       const row = fromObjectToCsvString(gtfs.getIndexedTable(tableName), keys);

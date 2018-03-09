@@ -1,6 +1,6 @@
 'use strict';
 
-const schema = require('./schema');
+/* eslint-disable no-underscore-dangle */
 
 /**
  * Build the list of the keys used in a table of the GTFS. Since the GTFS specification allows any additional field,
@@ -12,8 +12,8 @@ const schema = require('./schema');
  */
 function getActualKeysForTable(gtfs, tableName) {
   const getSample = iterable => ((iterable && iterable.values().next()) ? iterable.values().next().value : undefined);
-  const keys = [...schema.keysByTableName[tableName]];
-  const deepness = schema.deepnessByTableName[tableName];
+  const keys = [...gtfs._schema.keysByTableName[tableName]];
+  const deepness = gtfs._schema.deepnessByTableName[tableName];
   const table = gtfs.getIndexedTable(tableName);
   let sampleItem;
 
@@ -27,7 +27,7 @@ function getActualKeysForTable(gtfs, tableName) {
 
   if (sampleItem) {
     Object.keys(sampleItem).forEach((key) => {
-      if (schema.keysByTableName[tableName].includes(key) === false) {
+      if (gtfs._schema.keysByTableName[tableName].includes(key) === false) {
         keys.push(key);
       }
     });
@@ -57,15 +57,15 @@ function getGrandParentItem(itemWithForeignIndexId, parentTableName, grandParent
   ) {
     throw new Error(`itemWithForeignIndexId must be a plain object, instead of an "${typeof itemWithForeignIndexId}"`);
   }
-  if (schema.tableNames.includes(parentTableName) === false) {
+  if (gtfs._schema.tableNames.includes(parentTableName) === false) {
     throw new Error(`Cannot find table with name "${parentTableName}"`);
   }
-  if (schema.tableNames.includes(grandParentTableName) === false) {
+  if (gtfs._schema.tableNames.includes(grandParentTableName) === false) {
     throw new Error(`Cannot find table with name "${grandParentTableName}"`);
   }
 
   /* Reach parent item */
-  const parentIndexKey = schema.indexKeysByTableName[parentTableName].indexKey;
+  const parentIndexKey = gtfs._schema.indexKeysByTableName[parentTableName].indexKey;
 
   if (itemWithForeignIndexId[parentIndexKey] === undefined) {
     throw new Error(`itemWithForeignIndexId should contain the foreign index key "${parentIndexKey}"`);
@@ -78,7 +78,7 @@ function getGrandParentItem(itemWithForeignIndexId, parentTableName, grandParent
   }
 
   /* Reach grandparent item */
-  const grandParentIndexKey = schema.indexKeysByTableName[grandParentTableName].indexKey;
+  const grandParentIndexKey = gtfs._schema.indexKeysByTableName[grandParentTableName].indexKey;
 
   if (!parentItem[grandParentIndexKey]) {
     throw new Error(`parentItem should contain the foreign index key "${grandParentIndexKey}"${parentItem}`);
@@ -96,14 +96,14 @@ function getGrandParentItem(itemWithForeignIndexId, parentTableName, grandParent
  * @return {Map.<string, Object>} Indexed child items.
  */
 function getIndexedItemsWithParent(parentItem, tableName, gtfs) {
-  if (schema.deepnessByTableName[tableName] !== 2) {
+  if (gtfs._schema.deepnessByTableName[tableName] !== 2) {
     throw new Error(`Table "${tableName}" is not of deepness 2.`);
   }
   if (parentItem === undefined || parentItem === null || typeof parentItem !== 'object') {
     throw new Error(`Parent item should be a plain object, instead of an "${typeof parentItem}"`);
   }
 
-  const firstIndexKey = schema.indexKeysByTableName[tableName].firstIndexKey;
+  const firstIndexKey = gtfs._schema.indexKeysByTableName[tableName].firstIndexKey;
 
   if (parentItem[firstIndexKey] === undefined) {
     throw new Error(`Parent item should contain the foreign index key "${firstIndexKey}"`);
@@ -123,7 +123,7 @@ function getIndexedItemsWithParent(parentItem, tableName, gtfs) {
  * @return {Map.<string, Object>} Indexed child items.
  */
 function getIndexedItemsWithParentIndex(parentIndex, tableName, gtfs) {
-  if (schema.deepnessByTableName[tableName] !== 2) {
+  if (gtfs._schema.deepnessByTableName[tableName] !== 2) {
     throw new Error(`Table "${tableName}" is not of deepness 2.`);
   }
   if (typeof parentIndex !== 'string') {
@@ -146,7 +146,7 @@ function getIndexedItemsWithParentIndex(parentIndex, tableName, gtfs) {
  * @param {Gtfs}   gtfs      Gtfs object
  */
 function getItemWithIndex(index, tableName, gtfs) {
-  if (schema.deepnessByTableName[tableName] !== 1) {
+  if (gtfs._schema.deepnessByTableName[tableName] !== 1) {
     throw new Error(`Cannot access item with only one index in "${tableName}", since the deepness is not 1.`);
   }
   if (typeof index !== 'string') {
@@ -170,7 +170,7 @@ function getItemWithIndex(index, tableName, gtfs) {
  * @param {Gtfs}   gtfs        Gtfs object
  */
 function getItemWithIndexes(firstIndex, secondIndex, tableName, gtfs) {
-  if (schema.deepnessByTableName[tableName] !== 2) {
+  if (gtfs._schema.deepnessByTableName[tableName] !== 2) {
     throw new Error(`Cannot access item with two indexes in "${tableName}", since the deep is not 2.`);
   }
   if (firstIndex === undefined || firstIndex === null || typeof firstIndex !== 'string') {
@@ -202,7 +202,7 @@ function getParentItem(itemWithForeignIndexId, tableName, gtfs) {
     throw new Error(`itemWithForeignIndexId must be a plain object, instead of an "${typeof itemWithForeignIndexId}"`);
   }
 
-  const indexKey = schema.indexKeysByTableName[tableName].indexKey;
+  const indexKey = gtfs._schema.indexKeysByTableName[tableName].indexKey;
 
   if (itemWithForeignIndexId[indexKey] === undefined) {
     throw new Error(

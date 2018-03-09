@@ -9,7 +9,7 @@ const forEachWithLog = require('./helpers/logging_iterator_wrapper');
 const { exportGtfs } = require('./helpers/export');
 const getters = require('./helpers/getters');
 const { importTable } = require('./helpers/import');
-const schema = require('./helpers/schema');
+const defaultSchema = require('./helpers/schema');
 
 /**
  * Table-generic function to add items in a table of a GTFS.
@@ -24,7 +24,7 @@ function addItems(gtfs, tableName, items) {
   }
 
   const indexedTable = gtfs.getIndexedTable(tableName);
-  const indexKeys = schema.indexKeysByTableName[tableName];
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
 
   if (indexKeys.indexKey) {
     items.forEach(item => indexedTable.set(item[indexKeys.indexKey], item));
@@ -76,7 +76,7 @@ function forEachItem(gtfs, tableName, iterator) {
   }
 
   const indexedTable = gtfs.getIndexedTable(tableName);
-  const deepness = schema.deepnessByTableName[tableName];
+  const deepness = gtfs._schema.deepnessByTableName[tableName];
 
   if (deepness === 1) {
     forEachWithLog(`Iterating:${tableName}`, indexedTable, (item) => {
@@ -105,7 +105,7 @@ function removeItems(gtfs, tableName, items) {
   }
 
   const indexedTable = gtfs.getIndexedTable(tableName);
-  const indexKeys = schema.indexKeysByTableName[tableName];
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
 
   if (indexKeys.indexKey) {
     items.forEach(item => indexedTable.delete(item[indexKeys.indexKey]));
@@ -133,7 +133,7 @@ function removeItems(gtfs, tableName, items) {
  * @param  {Object|Map} indexedItems Object properly indexed as the schema requires the table to be (see schema.js).
  */
 function setIndexedItems(gtfs, tableName, indexedItems) {
-  if (indexedItems instanceof Map === false && schema.deepnessByTableName[tableName] !== 0) {
+  if (indexedItems instanceof Map === false && gtfs._schema.deepnessByTableName[tableName] !== 0) {
     throw new Error(`indexedItems must be a Map instead of: ${indexedItems}`);
   }
 
@@ -165,18 +165,28 @@ class Gtfs {
    *   }]
    * };
    *
+   *
    * # options.throws
    *
    * Optional ad-hoc boolean. Default is true. Will force the parser to ignore invalid rows in the tables.
    *
+   * # options.forcedSchema
+   *
+   * Will overwrite the default schema by the value passed.
+   *
+   *
    * @param {string} [path] Path to the folder that contains the GTFS text files.
    * @param {{
    *   regexPatternObjectsByTableName: Map.<string, Array.<{regex: RegExp, pattern: string}>>,
-   *   throws: boolean
+   *   throws: boolean,
+   *   forcedSchema,
    * }} [options] Optional. See list above.
    * @return {Gtfs} gtfs Instanciated GTFS object.
    */
-  constructor(path, {regexPatternObjectsByTableName = new Map(), throws = true} = {}) {
+  constructor(
+    path,
+    { regexPatternObjectsByTableName = new Map(), throws = true, postImportTableFunction, forcedSchema } = {}
+  ) {
     if (path !== undefined) {
       if (typeof path !== 'string' || path.length === 0) {
         throw new Error(`Gtfs need a valid input path as string, instead of: "${path}".`);
@@ -194,7 +204,9 @@ class Gtfs {
     this._path = path;
     this._regexPatternObjectsByTableName = regexPatternObjectsByTableName;
     this._shouldThrow = throws;
+    this._postImportTableFunction = postImportTableFunction;
     this._tables = new Map();
+    this._schema = defaultSchema || forcedSchema;
   }
 
   /* Input/Output */
@@ -273,14 +285,21 @@ class Gtfs {
    *
    * @return {Set.<string>} Array of the table names
    */
-  getTableNames() { return new Set([...schema.tableNames, ...this._tables.keys()]); }
+  getTableNames() { return new Set([...this._schema.tableNames, ...this._tables.keys()]); }
 
   /**
-   * Get the schema of the GTFS. For safety, the schema is cloned before beeing passed.
+   * Get the default schema of the GTFS. For safety, the schema is cloned before being passed.
    *
    * @return {Object} The schema
    */
-  static getSchema() { return JSON.parse(JSON.stringify(schema)); }
+  static getDefaultSchema() { return JSON.parse(JSON.stringify(defaultSchema)); }
+
+  /**
+   * Get the schema of the GTFS. For safety, the schema is cloned before being passed.
+   *
+   * @return {Object} The schema
+   */
+  getSchema() { return JSON.parse(JSON.stringify(this._schema)); }
 
   /**
    * Build the list of the keys used in a table of the GTFS. Since the GTFS specification allows any additional field,

@@ -7,7 +7,6 @@ const fs = require('fs-extra');
 
 const eachWithLog = require('./logging_iterator_wrapper');
 const { fromCsvStringToArray } = require('./csv');
-const schema = require('./schema');
 
 /**
  * Import a table in the GTFS.
@@ -17,7 +16,7 @@ const schema = require('./schema');
  */
 
 exports.importTable = (gtfs, tableName) => {
-  const indexKeys = schema.indexKeysByTableName[tableName];
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
   const fullPath = `${gtfs.getPath() + tableName}.txt`;
 
   if (fs.existsSync(fullPath)) {
