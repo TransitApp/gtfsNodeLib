@@ -140,6 +140,16 @@ function setIndexedItems(gtfs, tableName, indexedItems) {
   gtfs._tables.set(tableName, indexedItems);
 }
 
+/**
+ * Return the size of the map if define, otherwise 0
+ *
+ * @param {Map} map
+ * @returns {number}
+ */
+function getSizeOfMap(map) {
+  return (map instanceof Map) ? map.size : 0;
+}
+
 class Gtfs {
   /**
    * Constructor of the GTFS
@@ -550,12 +560,28 @@ class Gtfs {
   getIndexedRoutes() { return getIndexedTable(this, 'routes'); }
 
   /**
+   * Get the number of routes defined
+   *
+   * @returns {number}
+   */
+  getNumberOfRoutes() { return getIndexedTable(this, 'routes').size; }
+
+  /**
    * Get the route using one of its grand child stopTime.
    *
    * @param  {Object} stopTime A stopTime of the GTFS.
    * @return {Object}          The grand parent route of the stopTime.
    */
   getRouteOfStopTime(stopTime) { return getters.getGrandParentItem(stopTime, 'trips', 'routes', this); }
+
+  /**
+   * Get a sample route.
+   *
+   * WARNING: This is not a random route. With the current implementation, it will be the first one in inserting order.
+   *
+   * @returns {Object}
+   */
+  getSampleRoute() { return getIndexedTable(this, 'routes').values().next().value; }
 
   /**
    * Get the route using one of its child trip.
@@ -606,6 +632,11 @@ class Gtfs {
    */
   setIndexedRoutes(indexedRoutes) { setIndexedItems(this, 'routes', indexedRoutes); }
 
+  /**
+   * Reset the map of indexed routes.
+   */
+  resetRoutes() { setIndexedItems(this, 'routes', new Map()); }
+
 
   /* trips.txt */
 
@@ -636,6 +667,22 @@ class Gtfs {
    * @return {Map.<string, Object>} Indexed trips.
    */
   getIndexedTrips() { return getIndexedTable(this, 'trips'); }
+
+  /**
+   * Get the number of trips defined
+   *
+   * @returns {number}
+   */
+  getNumberOfTrips() { return getIndexedTable(this, 'trips').size; }
+
+  /**
+   * Get a sample trip.
+   *
+   * WARNING: This is not a random trip. With the current implementation, it will be the first one in inserting order.
+   *
+   * @returns {Object}
+   */
+  getSampleTrip() { return getIndexedTable(this, 'trips').values().next().value; }
 
   /**
    * Get the trip using one of its child stopTime.
@@ -686,6 +733,11 @@ class Gtfs {
    */
   setIndexedTrips(indexedTrips) { setIndexedItems(this, 'trips', indexedTrips); }
 
+  /**
+   * Reset the map of indexed trips.
+   */
+  resetTrips() { setIndexedItems(this, 'trips', new Map()); }
+
 
   /* stop_times.txt */
 
@@ -724,11 +776,49 @@ class Gtfs {
   }
 
   /**
+   * Apply a function to each stopTime of a specific trip id in the GTFS.
+   *
+   * @param {string}   tripId   Trip id scoping the stopTime in which to enumerate.
+   * @param {function} iterator Function which will be applied on every stopTime of the trip.
+   */
+  forEachStopTimeOfTripId(tripId, iterator) {
+    const stopTimeByStopSequenceByTripId = this.getIndexedStopTimes();
+    const stopTimeByStopSequence = stopTimeByStopSequenceByTripId.get(tripId);
+
+    if (stopTimeByStopSequence instanceof Map) {
+      stopTimeByStopSequence.forEach(iterator);
+    }
+  }
+
+  /**
    * Get the indexed stopTimes of the GTFS. The indexation is defined in the schema (see schema.js).
    *
    * @return {Map.<string, Map.<string, Object>>} Indexed stopTimes.
    */
   getIndexedStopTimes() { return getIndexedTable(this, 'stop_times'); }
+
+  /**
+   * Get the number of stop time defined for one specific trip
+   *
+   * @param {Object}   trip  Trip scoping the stop times to count.
+   * @returns {number}
+   */
+  getNumberOfStopTimeOfTrip(trip) {
+    const stopTimeByStopSequence = this.getStopTimeByStopSequenceOfTrip(trip);
+    return (stopTimeByStopSequence instanceof Map) ? stopTimeByStopSequence.size : 0;
+  }
+
+  /**
+   * Get the number of stop time defined for one specific trip id
+   *
+   * @param {string}   tripId  Trip id scoping the stop times to count.
+   * @returns {number}
+   */
+  getNumberOfStopTimeOfTripId(tripId) {
+    const stopTimeByStopSequenceByTripId = this.getIndexedStopTimes();
+    const stopTimeByStopSequence = stopTimeByStopSequenceByTripId.get(tripId);
+    return (stopTimeByStopSequence instanceof Map) ? stopTimeByStopSequence.size : 0;
+  }
 
   /**
    * Get the child stopTimes of a trip.
@@ -771,6 +861,11 @@ class Gtfs {
    * @param {Map.<string, Map.<string, Object>>} indexedStopTimes Map of stopTimes properly indexed (see schema.js).
    */
   setIndexedStopTimes(indexedStopTimes) { setIndexedItems(this, 'stop_times', indexedStopTimes); }
+
+  /**
+   * Reset the map of indexed stop times.
+   */
+  resetStopTimes() { setIndexedItems(this, 'stop_times', new Map()); }
 
 
   /* calendar.txt */
@@ -852,6 +947,11 @@ class Gtfs {
   removeCalendars(calendars) { removeItems(this, 'calendar', calendars); }
 
   /**
+   * Reset the map of indexed calendars.
+   */
+  resetCalendars() { setIndexedItems(this, 'calendar', new Map()); }
+
+  /**
    * Set the map of indexed calendars.
    *
    * WARNING: The Map should be indexed as defined in schema.js
@@ -883,6 +983,35 @@ class Gtfs {
    * @param {function} iterator Function which will be applied on every calendarDate.
    */
   forEachCalendarDate(iterator) { forEachItem(this, 'calendar_dates', iterator); }
+
+  /**
+   * Apply a function to each calendar date of a specific trip in the GTFS.
+   *
+   * @param {Object}   trip     Trip scoping the calendar dates in which to enumerate.
+   * @param {function} iterator Function which will be applied on every calendar dates of the trip.
+   */
+  forEachGtfsCalendarDateOfTrip(trip, iterator) {
+    const calendarDateByDate = this.getCalendarDateByDateOfTrip(trip);
+
+    if (calendarDateByDate instanceof Map) {
+      calendarDateByDate.forEach(iterator);
+    }
+  }
+
+  /**
+   * Apply a function to each calendar dates of a specific service id in the GTFS.
+   *
+   * @param {string}   serviceId  Service id scoping the calendar dates in which to enumerate.
+   * @param {function} iterator   Function which will be applied on every calendar dates of the service.
+   */
+  forEachGtfsCalendarDateWithServiceId(serviceId, iterator) {
+    const calendarDateByDateByServiceId = this.getIndexedCalendarDates();
+    const calendarDateByDate = calendarDateByDateByServiceId.get(serviceId);
+
+    if (calendarDateByDate instanceof Map) {
+      calendarDateByDate.forEach(iterator);
+    }
+  }
 
   /**
    * Get the calendarDates of a serviceId.
@@ -921,6 +1050,19 @@ class Gtfs {
   getIndexedCalendarDates() { return getIndexedTable(this, 'calendar_dates'); }
 
   /**
+   * Check if there are calendar dates with a specific service id
+   *
+   * @param {string}   serviceId  Service id to for which to check if calendar dates are defined.
+   * @returns {boolean}
+   */
+  hasGtfsCalendarDatesWithServiceId(serviceId) {
+    const calendarDateByDateByServiceId = this.getIndexedCalendarDates();
+    const calendarDateByDate = calendarDateByDateByServiceId.get(serviceId);
+
+    return (calendarDateByDate instanceof Map && calendarDateByDate.size !== 0);
+  }
+
+  /**
    * Removes a calendarDate of the GTFS.
    *
    * @param {Object} calendarDate CalendarDate to remove of the GTFS.
@@ -933,6 +1075,11 @@ class Gtfs {
    * @param {Array.<Object>} calendarDates CalendarDates to remove of the GTFS.
    */
   removeCalendarDates(calendarDates) { removeItems(this, 'calendar_dates', calendarDates); }
+
+  /**
+   * Reset the map of indexed calendars.
+   */
+  resetCalendarDates() { setIndexedItems(this, 'calendar_dates', new Map()); }
 
   /**
    * Set the map of indexed calendarDates.
@@ -978,6 +1125,21 @@ class Gtfs {
   forEachShapePoint(iterator) { forEachItem(this, 'shapes', iterator); }
 
   /**
+   * Apply a function to each calendar dates of a specific service id in the GTFS.
+   *
+   * @param {string}   shapeId  Service id scoping the calendar dates in which to enumerate.
+   * @param {function} iterator   Function which will be applied on every calendar dates of the service.
+   */
+  forEachGtfsShapePointOfShapeId(shapeId, iterator) {
+    const shapePointByShapePointSequenceByShapeId = this.getIndexedShapePoints();
+    const shapePointByShapePointSequence = shapePointByShapePointSequenceByShapeId.get(shapeId);
+
+    if (shapePointByShapePointSequence instanceof Map) {
+      shapePointByShapePointSequence.forEach(iterator);
+    }
+  }
+
+  /**
    * Get the indexed shapePoints of the GTFS. The indexation is defined in the schema (see schema.js).
    *
    * @return {Map.<string, Map.<string, Object>>} Indexed shapePoints.
@@ -1003,14 +1165,14 @@ class Gtfs {
   getShapePointByShapePointSequenceOfTrip(trip) { return getters.getIndexedItemsWithParent(trip, 'shapes', this); }
 
   /**
-   * Get a shapePoint using its indexes: the tripId and the shapePointSequence.
+   * Get a shapePoint using its indexes: the shapeId and the shapePointSequence.
    *
-   * @param  {string} tripId             First index of the shapePoint
+   * @param  {string} shapeId            First index of the shapePoint
    * @param  {string} shapePointSequence Second index of the shapePoint
    * @return {Object}                    ShapePoint object
    */
-  getShapePointWithTripIdAndShapePointSequence(tripId, shapePointSequence) {
-    return getters.getItemWithIndexes(tripId, shapePointSequence, 'shapes', this);
+  getShapePointWithShapeIdAndShapePointSequence(shapeId, shapePointSequence) {
+    return getters.getItemWithIndexes(shapeId, shapePointSequence, 'shapes', this);
   }
 
   /**
@@ -1026,6 +1188,11 @@ class Gtfs {
    * @param {Array.<Object>} shapePoints ShapePoints to remove of the GTFS.
    */
   removeShapePoints(shapePoints) { removeItems(this, 'shapes', shapePoints); }
+
+  /**
+   * Reset the shape points.
+   */
+  resetShapePoints() { setIndexedItems(this, 'shapes', new Map()); }
 
   /**
    * Set the map of indexed shapePoints.

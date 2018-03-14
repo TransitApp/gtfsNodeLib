@@ -418,8 +418,8 @@ describe('Tests on GTFS', () => {
     expect(sortedKeys(gtfs.getShapePointByShapePointSequenceOfTrip(trip0))).to.deep.equal(['1', '2']);
     expect(sortedKeys(gtfs.getShapePointByShapePointSequenceOfShapeId('shape_0'))).to.deep.equal(['1', '2']);
 
-    const shapePoint1 = gtfs.getShapePointWithTripIdAndShapePointSequence('shape_0', '1');
-    const shapePoint2 = gtfs.getShapePointWithTripIdAndShapePointSequence('shape_0', '2');
+    const shapePoint1 = gtfs.getShapePointWithShapeIdAndShapePointSequence('shape_0', '1');
+    const shapePoint2 = gtfs.getShapePointWithShapeIdAndShapePointSequence('shape_0', '2');
     expect(shapePoint1.shape_dist_traveled).to.equal('0');
     expect(shapePoint2.shape_dist_traveled).to.equal('10');
 
@@ -432,12 +432,12 @@ describe('Tests on GTFS', () => {
     ]);
     expect(sortedKeys(gtfs.getShapePointByShapePointSequenceOfTrip(trip0))).to.deep.equal(['1', '2', '3', '4', '5']);
 
-    gtfs.removeShapePoint(gtfs.getShapePointWithTripIdAndShapePointSequence('shape_0', '3'));
+    gtfs.removeShapePoint(gtfs.getShapePointWithShapeIdAndShapePointSequence('shape_0', '3'));
     expect(sortedKeys(gtfs.getShapePointByShapePointSequenceOfTrip(trip0))).to.deep.equal(['1', '2', '4', '5']);
 
     gtfs.removeShapePoints([
-      gtfs.getShapePointWithTripIdAndShapePointSequence('shape_0', '2'),
-      gtfs.getShapePointWithTripIdAndShapePointSequence('shape_0', '5'),
+      gtfs.getShapePointWithShapeIdAndShapePointSequence('shape_0', '2'),
+      gtfs.getShapePointWithShapeIdAndShapePointSequence('shape_0', '5'),
     ]);
     expect(sortedKeys(gtfs.getShapePointByShapePointSequenceOfTrip(trip0))).to.deep.equal(['1', '4']);
 
