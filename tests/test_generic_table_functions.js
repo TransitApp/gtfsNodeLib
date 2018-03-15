@@ -83,7 +83,6 @@ describe('Tests on GTFS generic table functions', () => {
     expect(() => gtfs.getNumberOfItemsInTable('stop_times')).to.throw();
 
     done();
-    done();
   });
 });
 

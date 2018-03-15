@@ -110,10 +110,10 @@ describe('Tests on GTFS calendar dates', () => {
     done();
   });
 
-  it('Tests on gtfs.forEachCalendarDateWithServiceId(serviceId, iterator)', (done) => {
+  it('Tests on gtfs.hasCalendarDatesWithServiceId(serviceId, iterator)', (done) => {
     const gtfs = new Gtfs(`${__dirname}/samples/1`);
 
-    expect(gtfs.hasGtfsCalendarDatesWithServiceId('service_1')).to.equal(false);
+    expect(gtfs.hasCalendarDatesWithServiceId('service_1')).to.equal(false);
 
     gtfs.setIndexedCalendarDates(new Map([
       ['service_0', new Map([
@@ -126,7 +126,7 @@ describe('Tests on GTFS calendar dates', () => {
       ])],
     ]));
 
-    expect(gtfs.forEachCalendarDateWithServiceId('service_1')).to.equal(true);
+    expect(gtfs.hasCalendarDatesWithServiceId('service_1')).to.equal(true);
 
     done();
   });

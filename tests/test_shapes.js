@@ -76,7 +76,7 @@ describe('Tests on GTFS shapes', () => {
 
     const shapePointSequencesForShape1 = [];
     gtfs.forEachShapePointOfShapeId('shape_1', (calendarDates) => {
-      shapePointSequencesForShape1.push(calendarDates.exception_type);
+      shapePointSequencesForShape1.push(calendarDates.shape_pt_sequence);
     });
     expect(shapePointSequencesForShape1.sort()).to.deep.equal(['6', '7']);
 

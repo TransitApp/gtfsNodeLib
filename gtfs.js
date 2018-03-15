@@ -41,7 +41,6 @@ function addItems(gtfs, tableName, items) {
     });
   }
 }
-
 /**
  * Table-generic function to get an indexed table of a GTFS. The indexation depends of the table, and is defined in
  * the schema (see schema.js).
@@ -148,6 +147,35 @@ function setIndexedItems(gtfs, tableName, indexedItems) {
  */
 function getSizeOfMap(map) {
   return (map instanceof Map) ? map.size : 0;
+}
+
+/**
+ * Table-generic function to reset a table of a GTFS (ie, create a new Map)
+ *
+ * @param {Gtfs}           gtfs      GTFS object containing the table to be reset.
+ * @param {string}         tableName Name of the table to be reset.
+ */
+function resetTable(gtfs, tableName) {
+  gtfs._tables.set(tableName, new Map());
+}
+
+/**
+ * Table-generic function to get the number of items in the provided GTFS table
+ *
+ * @param {Gtfs}           gtfs      GTFS object containing the table.
+ * @param {string}         tableName Name of the table to be get the number of item from.
+ */
+function getNumberOfItemsInTable(gtfs, tableName) {
+  const deepness = gtfs._schema.deepnessByTableName[tableName];
+
+  if (deepness !== 1) {
+    throw new Error(`'${tableName}' has a deepness of ${deepness}. \
+      getNumberOfItemsInTable can only apply on a first level table.`);
+  }
+
+  const indexedTable = gtfs.getIndexedTable(tableName);
+
+  return getSizeOfMap(indexedTable);
 }
 
 class Gtfs {
@@ -336,6 +364,13 @@ class Gtfs {
   getActualKeysForTable(tableName) { return getters.getActualKeysForTable(this, tableName); }
 
   /**
+   * Table-generic function returning the number of items in the provided GTFS table.
+   *
+   * @param  {string}         tableName Name of the table of the GTFS
+   */
+  getNumberOfItemsInTable(tableName) { return getNumberOfItemsInTable(this, tableName); }
+
+  /**
    * Get the parent item using one of its child.
    *
    * @param {Object} item      The child item.
@@ -361,13 +396,20 @@ class Gtfs {
   removeItemsInTable(items, tableName) { removeItems(this, tableName, items); }
 
   /**
+   * Table-generic function to reset a GTFS table (ie, create a new Map)
+   *
+   * @param {Gtfs}           gtfs      GTFS object containing the table to be reset.
+   * @param {string}         tableName Name of the table to be reset.
+   */
+  resetTable(tableName) { resetTable(this, tableName); }
+
+  /**
    * Table-generic function to set an indexed table in the GTFS.
    *
    * @param  {Map}    indexedItems Object properly indexed as the schema requires the table to be (see schema.js).
    * @param  {string} tableName    Name of the table of the GTFS to set.
    */
   setIndexedItemsAsTable(indexedItems, tableName) { setIndexedItems(this, tableName, indexedItems); }
-
 
   /* agency.txt */
 
@@ -438,6 +480,11 @@ class Gtfs {
    * @param {Array.<Object>} agencies Agencies to remove of the GTFS.
    */
   removeAgencies(agencies) { removeItems(this, 'agency', agencies); }
+
+  /**
+   * Reset the map of indexed agencies.
+   */
+  resetAgencies() { resetTable(this, 'agency'); }
 
   /**
    * Set the map of indexed agencies.
@@ -520,6 +567,11 @@ class Gtfs {
   removeStops(stops) { removeItems(this, 'stops', stops); }
 
   /**
+   * Reset the map of indexed stops.
+   */
+  resetStops() { resetTable(this, 'stops'); }
+
+  /**
    * Set the map of indexed stops.
    *
    * WARNING: The Map should be indexed as defined in schema.js
@@ -564,7 +616,7 @@ class Gtfs {
    *
    * @returns {number}
    */
-  getNumberOfRoutes() { return getIndexedTable(this, 'routes').size; }
+  getNumberOfRoutes() { return getNumberOfItemsInTable(this, 'routes'); }
 
   /**
    * Get the route using one of its grand child stopTime.
@@ -624,6 +676,11 @@ class Gtfs {
   removeRoutes(routes) { removeItems(this, 'routes', routes); }
 
   /**
+   * Reset the map of indexed routes.
+   */
+  resetRoutes() { resetTable(this, 'routes'); }
+
+  /**
    * Set the map of indexed routes.
    *
    * WARNING: The Map should be indexed as defined in schema.js
@@ -631,12 +688,6 @@ class Gtfs {
    * @param {Map.<string, Object>} indexedRoutes Map of routes properly indexed (see schema.js).
    */
   setIndexedRoutes(indexedRoutes) { setIndexedItems(this, 'routes', indexedRoutes); }
-
-  /**
-   * Reset the map of indexed routes.
-   */
-  resetRoutes() { setIndexedItems(this, 'routes', new Map()); }
-
 
   /* trips.txt */
 
@@ -736,7 +787,7 @@ class Gtfs {
   /**
    * Reset the map of indexed trips.
    */
-  resetTrips() { setIndexedItems(this, 'trips', new Map()); }
+  resetTrips() { resetTable(this, 'trips'); }
 
 
   /* stop_times.txt */
@@ -865,7 +916,7 @@ class Gtfs {
   /**
    * Reset the map of indexed stop times.
    */
-  resetStopTimes() { setIndexedItems(this, 'stop_times', new Map()); }
+  resetStopTimes() { resetTable(this, 'stop_times'); }
 
 
   /* calendar.txt */
@@ -949,7 +1000,7 @@ class Gtfs {
   /**
    * Reset the map of indexed calendars.
    */
-  resetCalendars() { setIndexedItems(this, 'calendar', new Map()); }
+  resetCalendars() { resetTable(this, 'calendar'); }
 
   /**
    * Set the map of indexed calendars.
@@ -990,7 +1041,7 @@ class Gtfs {
    * @param {Object}   trip     Trip scoping the calendar dates in which to enumerate.
    * @param {function} iterator Function which will be applied on every calendar dates of the trip.
    */
-  forEachGtfsCalendarDateOfTrip(trip, iterator) {
+  forEachCalendarDateOfTrip(trip, iterator) {
     const calendarDateByDate = this.getCalendarDateByDateOfTrip(trip);
 
     if (calendarDateByDate instanceof Map) {
@@ -1004,7 +1055,7 @@ class Gtfs {
    * @param {string}   serviceId  Service id scoping the calendar dates in which to enumerate.
    * @param {function} iterator   Function which will be applied on every calendar dates of the service.
    */
-  forEachGtfsCalendarDateWithServiceId(serviceId, iterator) {
+  forEachCalendarDateWithServiceId(serviceId, iterator) {
     const calendarDateByDateByServiceId = this.getIndexedCalendarDates();
     const calendarDateByDate = calendarDateByDateByServiceId.get(serviceId);
 
@@ -1055,7 +1106,7 @@ class Gtfs {
    * @param {string}   serviceId  Service id to for which to check if calendar dates are defined.
    * @returns {boolean}
    */
-  hasGtfsCalendarDatesWithServiceId(serviceId) {
+  hasCalendarDatesWithServiceId(serviceId) {
     const calendarDateByDateByServiceId = this.getIndexedCalendarDates();
     const calendarDateByDate = calendarDateByDateByServiceId.get(serviceId);
 
@@ -1077,9 +1128,9 @@ class Gtfs {
   removeCalendarDates(calendarDates) { removeItems(this, 'calendar_dates', calendarDates); }
 
   /**
-   * Reset the map of indexed calendars.
+   * Reset the map of indexed calendars dates.
    */
-  resetCalendarDates() { setIndexedItems(this, 'calendar_dates', new Map()); }
+  resetCalendarDates() { resetTable(this, 'calendar_dates'); }
 
   /**
    * Set the map of indexed calendarDates.
@@ -1130,7 +1181,7 @@ class Gtfs {
    * @param {string}   shapeId  Service id scoping the calendar dates in which to enumerate.
    * @param {function} iterator   Function which will be applied on every calendar dates of the service.
    */
-  forEachGtfsShapePointOfShapeId(shapeId, iterator) {
+  forEachShapePointOfShapeId(shapeId, iterator) {
     const shapePointByShapePointSequenceByShapeId = this.getIndexedShapePoints();
     const shapePointByShapePointSequence = shapePointByShapePointSequenceByShapeId.get(shapeId);
 
@@ -1192,7 +1243,7 @@ class Gtfs {
   /**
    * Reset the shape points.
    */
-  resetShapePoints() { setIndexedItems(this, 'shapes', new Map()); }
+  resetShapePoints() { resetTable(this, 'shapes'); }
 
   /**
    * Set the map of indexed shapePoints.
@@ -1260,6 +1311,11 @@ class Gtfs {
   removeFrequencies(frequencies) { removeItems(this, 'frequencies', frequencies); }
 
   /**
+   * Reset the map of indexed frequencies.
+   */
+  resetFrequencies() { resetTable(this, 'frequencies'); }
+
+  /**
    * Set the map of indexed frequencies.
    *
    * WARNING: The Map should be indexed as defined in schema.js
@@ -1323,6 +1379,11 @@ class Gtfs {
    * @param {Array.<Object>} transfers Transfers to remove of the GTFS.
    */
   removeTransfers(transfers) { removeItems(this, 'transfers', transfers); }
+
+  /**
+   * Reset the map of indexed transfers.
+   */
+  resetTransfers() { resetTable(this, 'transfers'); }
 
   /**
    * Set the map of indexed transfers.
