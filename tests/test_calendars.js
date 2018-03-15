@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const { Gtfs } = require('../index');
 
-describe('Tests on GTFS stop times', () => {
+describe('Tests on GTFS calendars', () => {
   it('Tests on calendars functions', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
