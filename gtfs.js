@@ -527,6 +527,13 @@ class Gtfs {
   getIndexedStops() { return getIndexedTable(this, 'stops'); }
 
   /**
+     * Get the number of stops defined
+     *
+     * @returns {number}
+     */
+  getNumberOfStops() { return getNumberOfItemsInTable(this, 'stops'); }
+
+  /**
    * Get the stop using one of its child stopTime.
    *
    * WARNING: Will return the stop which is indexed with the stopTime.stop_id of the stopTime passed as argument. If the
@@ -724,7 +731,7 @@ class Gtfs {
    *
    * @returns {number}
    */
-  getNumberOfTrips() { return getIndexedTable(this, 'trips').size; }
+  getNumberOfTrips() { return getNumberOfItemsInTable(this, 'trips'); }
 
   /**
    * Get a sample trip.
@@ -980,6 +987,13 @@ class Gtfs {
    * @return {Map.<string, Object>} Indexed calendars.
    */
   getIndexedCalendars() { return getIndexedTable(this, 'calendar'); }
+
+  /**
+   * Get the number of calendar defined
+   *
+   * @returns {number}
+   */
+  getNumberOfCalendars() { return getNumberOfItemsInTable(this, 'calendar'); }
 
   /**
    * Removes an calendar of the GTFS.
