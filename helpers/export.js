@@ -90,6 +90,7 @@ function exportTable(tableName, gtfs, outputPath, callback) {
         const row = fromObjectToCsvString(item, keys);
         fs.appendFile(outputFullPath, row, callback);
       }
+      callback();
       return;
     }
 
