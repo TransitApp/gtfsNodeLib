@@ -35,31 +35,17 @@ describe('Tests on GTFS', () => {
     gtfs.exportAtPath(outputPath, (exportError) => {
       if (exportError) { throw exportError; }
 
-      fs.readFile(`${outputPath}routes.txt`, (readRoutesError, routesTxt) => {
-        if (readRoutesError) { throw readRoutesError; }
+      const routesTxt = fs.readFileSync(`${outputPath}routes.txt`);
 
-        expect(String(routesTxt)).to.equal(
-          'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
-          'route_text_color,route_sort_order,some_extra_route_field\n' +
-          'route_0,agency_0,R0,Route 0,Some new description,3,,,,,some_extra_route_value\n'
-        );
+      expect(String(routesTxt)).to.equal(
+        'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
+        'route_text_color,route_sort_order,some_extra_route_field\n' +
+        'route_0,agency_0,R0,Route 0,Some new description,3,,,,,some_extra_route_value\n'
+      );
 
-        fs.readFile(`${outputPath}feed_info.txt`, (readFeedInfoError, feedInfoTxt) => {
-          if (readFeedInfoError) { throw readFeedInfoError; }
+      fs.removeSync(outputPath);
 
-          expect(String(feedInfoTxt)).to.equal(
-            'feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version,' +
-            'some_extra_field\n' +
-            'Publisher Name,http://google.com,fr,20000101,21001231,42,some_extra_value\n'
-          );
-
-          fs.remove(outputPath, (removeError) => {
-            if (removeError) { throw removeError; }
-
-            done();
-          });
-        });
-      });
+      done();
     });
   });
 
