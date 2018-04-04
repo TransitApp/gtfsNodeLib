@@ -87,35 +87,43 @@ function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
   checkThatKeysIncludeIndexKeys(sortedKeys, indexKeys, tableName);
 
   eachWithLog(`Importation:${tableName}`, rows, (row, index) => {
-    if (index !== 0 && row && row.length > 0) {
-      const arrayOfValues = fromCsvStringToArray(row, tableName, gtfs).map(key => key.trim());
+    if (index === 0 || !row || !row.trim) {
+      return;
+    }
 
-      if (arrayOfValues !== null) {
-        const item = sortedKeys.reduce((accumulator, key, i) => {
-          accumulator[key] = arrayOfValues[i];
-          return accumulator;
-        }, {});
+    row = row.trim();
 
-        if (sortedKeys.length !== arrayOfValues.length) {
-          if (shouldThrow === true) {
-            throw new Error(`Invalid raw in table ${tableName}: ${JSON.stringify(item)}`);
-          }
+    if (row.length === 0) {
+      return;
+    }
 
-          process.notices.addWarning(__filename, `Row not valid in table: ${JSON.stringify(item)}`);
-          return;
+    const arrayOfValues = fromCsvStringToArray(row, tableName, gtfs).map(key => key.trim());
+
+    if (arrayOfValues !== null) {
+      const item = sortedKeys.reduce((accumulator, key, i) => {
+        accumulator[key] = arrayOfValues[i];
+        return accumulator;
+      }, {});
+
+      if (sortedKeys.length !== arrayOfValues.length) {
+        if (shouldThrow === true) {
+          throw new Error(`Invalid raw in table ${tableName}: ${JSON.stringify(item)}`);
         }
 
-        if (indexKeys.indexKey) {
-          table.set(item[indexKeys.indexKey], item);
-        } else if (indexKeys.firstIndexKey && indexKeys.secondIndexKey) {
-          if (table.has(item[indexKeys.firstIndexKey]) === false) {
-            table.set(item[indexKeys.firstIndexKey], new Map());
-          }
+        process.notices.addWarning(__filename, `Row not valid in table: ${JSON.stringify(item)}`);
+        return;
+      }
 
-          table.get(item[indexKeys.firstIndexKey]).set(item[indexKeys.secondIndexKey], item);
-        } else if (indexKeys.singleton) {
-          table = item;
+      if (indexKeys.indexKey) {
+        table.set(item[indexKeys.indexKey], item);
+      } else if (indexKeys.firstIndexKey && indexKeys.secondIndexKey) {
+        if (table.has(item[indexKeys.firstIndexKey]) === false) {
+          table.set(item[indexKeys.firstIndexKey], new Map());
         }
+
+        table.get(item[indexKeys.firstIndexKey]).set(item[indexKeys.secondIndexKey], item);
+      } else if (indexKeys.singleton) {
+        table = item;
       }
     }
 
