@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const { Gtfs } = require('../index');
 
-describe('Tests on GTFS feed info', () => {
+describe('Tests on GTFS fare rules', () => {
   it('Tests on gtfs.getNumberOfFareRules(), .addFareRules?(), .getFareRules?() and .hasFareRule', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);

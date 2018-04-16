@@ -1217,7 +1217,86 @@ class Gtfs {
 
 
   /* fare_attributes.txt */
-  // Not used, therefore not implemented
+
+  /**
+   * Adds a fareAttribute in the GTFS.
+   *
+   * @param {Object} fareAttribute - FareAttribute to add in the GTFS.
+   */
+  addFareAttribute(fareAttribute) { addItems(this, 'fare_attributes', [fareAttribute]); }
+
+  /**
+   * Adds a list of fareAttributes in the GTFS.
+   *
+   * @param {Array.<Object>} fareAttributes - Array of fareAttributes to add in the GTFS.
+   */
+  addFareAttributes(fareAttributes) { addItems(this, 'fare_attributes', fareAttributes); }
+
+  /**
+   * Apply a function to each fareAttribute in the GTFS.
+   *
+   * @param {function} iterator - Function which will be applied on every fareAttribute.
+   */
+  forEachFareAttribute(iterator) { forEachItem(this, 'fare_attributes', iterator); }
+
+  /**
+   * Get the indexed fareAttributes of the GTFS. The indexation is defined in the schema (see schema.js).
+   *
+   * @return {Map.<string, Object>} Indexed fareAttributes.
+   */
+  getIndexedFareAttributes() { return getIndexedTable(this, 'fare_attributes'); }
+
+  /**
+   * Get the number of fareAttributes defined
+   *
+   * @returns {number}
+   */
+  getNumberOfFareAttributes() { return getNumberOfItemsInTable(this, 'fare_attributes'); }
+
+  /**
+   * Get the fareAttribute using its fare_id.
+   *
+   * WARNING: Will return the fareAttribute which is indexed with the fare_id passed as argument. If the internal value
+   * of the fareAttribute's fare_id has been changed but not it's indexing, the result will be wrong.
+   *
+   * @param {string} fareId - Index of the fareAttribute.
+   * @return {Object} The fareAttribute indexed by the fare_id passed as parameter.
+   */
+  getFareAttributeWithId(fareId) { return getters.getItemWithIndex(fareId, 'fare_attributes', this); }
+
+  /**
+   * Removes a fareAttribute of the GTFS.
+   *
+   * WARNING: It will remove the fareAttribute indexed by the `fareAttribute.fare_id` of the fareAttribute passed as
+   * parameter.
+   *
+   * @param {Object} fareAttribute - FareAttribute to remove of the GTFS.
+   */
+  removeFareAttribute(fareAttribute) { removeItems(this, 'fare_attributes', [fareAttribute]); }
+
+  /**
+   * Removes a list of fareAttributes of the GTFS.
+   *
+   * WARNING: It will remove the fareAttributes indexed by the `fareAttribute.fare_id` of the fareAttributes
+   * passed as parameter.
+   *
+   * @param {Array.<Object>} fareAttributes FareAttributes to remove of the GTFS.
+   */
+  removeFareAttributes(fareAttributes) { removeItems(this, 'fare_attributes', fareAttributes); }
+
+  /**
+   * Reset the map of indexed fareAttributes.
+   */
+  resetFareAttributes() { resetTable(this, 'fare_attributes'); }
+
+  /**
+   * Set the map of indexed fareAttributes.
+   *
+   * WARNING: The Map should be indexed as defined in schema.js
+   *
+   * @param {Map.<string, Object>} indexedFareAttributes Map of fareAttributes properly indexed (see schema.js).
+   */
+  setIndexedFareAttributes(indexedFareAttributes) { setTable(this, 'fare_attributes', indexedFareAttributes); }
 
 
   /* fare_rules.txt */
