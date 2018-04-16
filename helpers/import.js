@@ -27,7 +27,7 @@ exports.importTable = (gtfs, tableName) => {
   } else {
     infoLog(`Empty table will be set for table ${tableName} (no input file at path ${gtfs._path}).`);
 
-    gtfs._tables.set(tableName, new Map());
+    gtfs._tables.set(tableName, (indexKeys.setOfItems) ? new Set() : new Map());
   }
 
   if (gtfs._postImportItemFunction) {
