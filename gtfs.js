@@ -585,10 +585,10 @@ class Gtfs {
   getIndexedStops() { return getIndexedTable(this, 'stops'); }
 
   /**
-     * Get the number of stops defined
-     *
-     * @returns {number}
-     */
+   * Get the number of stops defined
+   *
+   * @returns {number}
+   */
   getNumberOfStops() { return getNumberOfItemsInTable(this, 'stops'); }
 
   /**

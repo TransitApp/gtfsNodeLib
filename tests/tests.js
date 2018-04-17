@@ -102,7 +102,3 @@ describe('Tests on GTFS', () => {
     done();
   });
 });
-
-function sortedKeys(map) {
-  return Array.from(map.keys()).sort();
-}
