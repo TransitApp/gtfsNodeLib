@@ -31,7 +31,11 @@ exports.importTable = (gtfs, tableName) => {
   }
 
   if (gtfs._postImportItemFunction) {
-    gtfs.forEachItemInTable(tableName, gtfs._postImportItemFunction);
+    if (indexKeys.singleton) {
+      gtfs._postImportItemFunction(gtfs.getIndexedTable(tableName));
+    } else {
+      gtfs.forEachItemInTable(tableName, gtfs._postImportItemFunction);
+    }
   }
 };
 
@@ -76,7 +80,7 @@ function getRows(buffer, regexPatternObjects, tableName) {
 }
 
 function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
-  let table = new Map();
+  let table = (indexKeys.setOfItems) ? new Set() : new Map();
 
   if (rows === undefined || rows === null || rows.length === 0) {
     return table;
@@ -124,6 +128,8 @@ function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
         table.get(item[indexKeys.firstIndexKey]).set(item[indexKeys.secondIndexKey], item);
       } else if (indexKeys.singleton) {
         table = item;
+      } else if (indexKeys.setOfItems) {
+        table.add(item);
       }
     }
 

@@ -100,7 +100,13 @@ function forEachItem(gtfs, tableName, iterator) {
   }
 
   const indexedTable = gtfs.getIndexedTable(tableName);
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
   const deepness = gtfs._schema.deepnessByTableName[tableName];
+
+  if (indexKeys.singleton) {
+    iterator(indexedTable);
+    return;
+  }
 
   if (deepness === 0 || deepness === 1) {
     forEachWithLog(`Iterating:${tableName}`, indexedTable, (item) => {
