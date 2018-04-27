@@ -11,7 +11,12 @@ function formatRegularValue(value) {
     return '';
   }
 
-  value = (typeof value === 'string') ? value : String(value);
+  const type = typeof value;
+  if (type === 'object') {
+    value = JSON.stringify(value)
+  } else if (type !== 'string') {
+    value = String(value);
+  }
 
   if (value.match(SPECIAL_CHARACTERS_REGEX)) {
     return `"${value.replace(/"/g, '""')}"`;
@@ -77,17 +82,17 @@ function fromCsvStringToArray(string, tableName) {
   }
 
   const a = []; // Initialize array to receive values.
-    // "Walk" the string using replace with callback.
+  // "Walk" the string using replace with callback.
   string.replace(reValue, (m0, /* m1, */ m2, m3) => {
-        // Remove backslash from \' in single quoted values.
-        /* if      (m1 !== undefined) a.push(m1.replace(/\\'/g, "'")); */
-        // Remove backslash from \" in double quoted values.
-        /* else */
+    // Remove backslash from \' in single quoted values.
+    /* if      (m1 !== undefined) a.push(m1.replace(/\\'/g, "'")); */
+    // Remove backslash from \" in double quoted values.
+    /* else */
     if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
     else if (m3 !== undefined) a.push(m3);
     return []; // Return empty string.
   });
-    // Handle special case of empty last value.
+  // Handle special case of empty last value.
   if (/,\s*$/.test(string)) {
     a.push('');
   }
