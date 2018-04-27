@@ -12,9 +12,11 @@ function formatRegularValue(value) {
   }
 
   const type = typeof value;
-  value = (type === 'object') ? JSON.stringify(value) : (
-    (type === 'string') ? value : String(value)
-  );
+  if (type === 'object') {
+    value = JSON.stringify(value)
+  } else if (type !== 'string') {
+    value = String(value);
+  }
 
   if (value.match(SPECIAL_CHARACTERS_REGEX)) {
     return `"${value.replace(/"/g, '""')}"`;
