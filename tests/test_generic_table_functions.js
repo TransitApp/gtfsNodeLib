@@ -30,19 +30,19 @@ describe('Tests on GTFS generic table functions', () => {
     const route0 = gtfs.getRouteWithId('route_0');
 
     gtfs.addItemInTable({ route_id: 'route_1', route_long_name: 'Route 1' }, ROUTE_TABLE_NAME);
-    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1']);
+    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_x']);
 
     gtfs.addItemsInTable([
       { route_id: 'route_2', route_long_name: 'Route 2' },
       { route_id: 'route_3', route_long_name: 'Route 3' },
     ], ROUTE_TABLE_NAME);
-    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_2', 'route_3']);
+    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_2', 'route_3', 'route_x']);
 
     gtfs.removeItemInTable(gtfs.getRouteWithId('route_2'), ROUTE_TABLE_NAME);
-    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_3']);
+    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_3', 'route_x']);
 
     gtfs.removeItemsInTable([gtfs.getRouteWithId('route_0'), gtfs.getRouteWithId('route_3')], ROUTE_TABLE_NAME);
-    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_1']);
+    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_1', 'route_x']);
 
     gtfs.setIndexedItemsAsTable(new Map([['route_0', route0]]), ROUTE_TABLE_NAME);
     expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0']);
@@ -75,7 +75,7 @@ describe('Tests on GTFS generic table functions', () => {
   it('Test on gtfs.getNumberOfItemsInTable(tableName)', (done) => {
     const gtfs = new Gtfs(`${__dirname}/samples/1`);
 
-    expect(gtfs.getNumberOfItemsInTable('routes')).to.equal(1);
+    expect(gtfs.getNumberOfItemsInTable('routes')).to.equal(2);
 
     gtfs.resetRoutes();
     expect(gtfs.getNumberOfItemsInTable('routes')).to.equal(0);
