@@ -15,7 +15,7 @@ describe('Tests on GTFS generic table functions', () => {
     expect(agency0.agency_name).to.equal('Agency 0');
 
     const expectedTableNames = [
-      'agency', 'calendar', 'calendar_dates', 'fare_attributes', 'frequencies',
+      'agency', 'calendar', 'calendar_dates', 'fare_attributes', 'fare_rules', 'frequencies',
       'routes', 'stop_times', 'stops', 'trips', 'shapes', 'transfers', 'feed_info',
     ];
     expect(Array.from(gtfs.getTableNames())).to.deep.equal(expectedTableNames);

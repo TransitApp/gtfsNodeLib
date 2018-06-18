@@ -26,6 +26,11 @@ function addItems(gtfs, tableName, items) {
   const indexedTable = gtfs.getIndexedTable(tableName);
   const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
 
+  if (indexKeys.setOfItems) {
+    items.forEach(item => indexedTable.add(item));
+    return;
+  }
+
   if (indexKeys.indexKey) {
     items.forEach(item => indexedTable.set(item[indexKeys.indexKey], item));
     return;
@@ -63,6 +68,26 @@ function getIndexedTable(gtfs, tableName) {
 }
 
 /**
+ * Check if an object is already in a table. Can only be used for not indexed table.
+ *
+ * @param {Gtfs} gtfs - GTFS object containing the table to check
+ * @param {Object} item - Item which will be searched in the table
+ * @param {string} tableName - Name of the table of the GTFS in which to search the object.
+ * @returns {Boolean} Whether or not the item is in the table.
+ */
+
+function hasItemInTable(gtfs, item, tableName) {
+  const items = gtfs.getIndexedTable(tableName);
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
+
+  if (indexKeys.setOfItems) {
+    return items.has(item);
+  }
+
+  throw new Error('hasItemInTable can only be used on table stored as Set. Use the key in other cases.');
+}
+
+/**
  * Table-generic function to get an iterate in a table of a GTFS.
  *
  * @param  {Gtfs}     gtfs      GTFS object containing the table to iterate on.
@@ -75,9 +100,15 @@ function forEachItem(gtfs, tableName, iterator) {
   }
 
   const indexedTable = gtfs.getIndexedTable(tableName);
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
   const deepness = gtfs._schema.deepnessByTableName[tableName];
 
-  if (deepness === 1) {
+  if (indexKeys.singleton) {
+    iterator(indexedTable);
+    return;
+  }
+
+  if (deepness === 0 || deepness === 1) {
     forEachWithLog(`Iterating:${tableName}`, indexedTable, (item) => {
       iterator(item);
     });
@@ -106,6 +137,11 @@ function removeItems(gtfs, tableName, items) {
   const indexedTable = gtfs.getIndexedTable(tableName);
   const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
 
+  if (indexKeys.setOfItems) {
+    items.forEach(item => indexedTable.delete(item));
+    return;
+  }
+
   if (indexKeys.indexKey) {
     items.forEach(item => indexedTable.delete(item[indexKeys.indexKey]));
     return;
@@ -129,18 +165,24 @@ function removeItems(gtfs, tableName, items) {
  *
  * @param  {Gtfs}   gtfs         GTFS object in which the table will be set.
  * @param  {string} tableName    Name of the table of the GTFS to set.
- * @param  {Object|Map} indexedItems Object properly indexed as the schema requires the table to be (see schema.js).
+ * @param  {Object|Map|Set} table Object properly indexed as the schema requires the table to be (see schema.js).
  */
-function setIndexedItems(gtfs, tableName, indexedItems) {
-  if (indexedItems instanceof Map === false && gtfs._schema.deepnessByTableName[tableName] !== 0) {
-    throw new Error(`indexedItems must be a Map instead of: ${indexedItems}`);
-  }
+function setTable(gtfs, tableName, table) {
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
 
-  gtfs._tables.set(tableName, indexedItems);
+  if (indexKeys.setOfItems && table instanceof Set === true) {
+    gtfs._tables.set(tableName, table);
+  } else if (indexKeys.singleton && table instanceof Set === false && table instanceof Map === false ) {
+    gtfs._tables.set(tableName, table);
+  } else if (indexKeys.setOfItems !== true && indexKeys.singleton !== true && table instanceof Map === true) {
+    gtfs._tables.set(tableName, table);
+  } else {
+    throw new Error(`setTable cannot be used with the table: ${table}`);
+  }
 }
 
 /**
- * Return the size of the map if define, otherwise 0
+ * Return the size of the Map if define, otherwise 0
  *
  * @param {Map} map
  * @returns {number}
@@ -150,13 +192,29 @@ function getSizeOfMap(map) {
 }
 
 /**
+ * Return the size of the Set if define, otherwise 0
+ *
+ * @param {Set} set
+ * @returns {number}
+ */
+function getSizeOfSet(set) {
+  return (set instanceof Set) ? set.size : 0;
+}
+
+/**
  * Table-generic function to reset a table of a GTFS (ie, create a new Map)
  *
  * @param {Gtfs}           gtfs      GTFS object containing the table to be reset.
  * @param {string}         tableName Name of the table to be reset.
  */
 function resetTable(gtfs, tableName) {
-  gtfs._tables.set(tableName, new Map());
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
+
+  if (indexKeys.setOfItems) {
+    gtfs._tables.set(tableName, new Set());
+  } else {
+    gtfs._tables.set(tableName, new Map());
+  }
 }
 
 /**
@@ -166,16 +224,22 @@ function resetTable(gtfs, tableName) {
  * @param {string}         tableName Name of the table to be get the number of item from.
  */
 function getNumberOfItemsInTable(gtfs, tableName) {
+  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
   const deepness = gtfs._schema.deepnessByTableName[tableName];
 
-  if (deepness !== 1) {
-    throw new Error(`'${tableName}' has a deepness of ${deepness}. \
-      getNumberOfItemsInTable can only apply on a first level table.`);
+  if (deepness === 1) {
+    const indexedTable = gtfs.getIndexedTable(tableName);
+    return getSizeOfMap(indexedTable);
+  }
+  if (deepness === 0 && indexKeys.setOfItems) {
+    const items = gtfs.getIndexedTable(tableName);
+    return getSizeOfSet(items);
   }
 
-  const indexedTable = gtfs.getIndexedTable(tableName);
-
-  return getSizeOfMap(indexedTable);
+  throw new Error(
+    `'${tableName}' has a deepness of ${deepness}.` +
+    'getNumberOfItemsInTable can only apply on a first level table or a Set.'
+  );
 }
 
 class Gtfs {
@@ -409,7 +473,7 @@ class Gtfs {
    * @param  {Map}    indexedItems Object properly indexed as the schema requires the table to be (see schema.js).
    * @param  {string} tableName    Name of the table of the GTFS to set.
    */
-  setIndexedItemsAsTable(indexedItems, tableName) { setIndexedItems(this, tableName, indexedItems); }
+  setIndexedItemsAsTable(indexedItems, tableName) { setTable(this, tableName, indexedItems); }
 
   /* agency.txt */
 
@@ -493,7 +557,7 @@ class Gtfs {
    *
    * @param {Map.<string, Object>} indexedAgencies Map of agencies properly indexed (see schema.js).
    */
-  setIndexedAgencies(indexedAgencies) { setIndexedItems(this, 'agency', indexedAgencies); }
+  setIndexedAgencies(indexedAgencies) { setTable(this, 'agency', indexedAgencies); }
 
 
   /* stops.txt */
@@ -527,10 +591,10 @@ class Gtfs {
   getIndexedStops() { return getIndexedTable(this, 'stops'); }
 
   /**
-     * Get the number of stops defined
-     *
-     * @returns {number}
-     */
+   * Get the number of stops defined
+   *
+   * @returns {number}
+   */
   getNumberOfStops() { return getNumberOfItemsInTable(this, 'stops'); }
 
   /**
@@ -585,7 +649,7 @@ class Gtfs {
    *
    * @param {Map.<string, Object>} indexedStops Map of stops properly indexed (see schema.js).
    */
-  setIndexedStops(indexedStops) { setIndexedItems(this, 'stops', indexedStops); }
+  setIndexedStops(indexedStops) { setTable(this, 'stops', indexedStops); }
 
 
   /* routes.txt */
@@ -694,7 +758,7 @@ class Gtfs {
    *
    * @param {Map.<string, Object>} indexedRoutes Map of routes properly indexed (see schema.js).
    */
-  setIndexedRoutes(indexedRoutes) { setIndexedItems(this, 'routes', indexedRoutes); }
+  setIndexedRoutes(indexedRoutes) { setTable(this, 'routes', indexedRoutes); }
 
   /* trips.txt */
 
@@ -789,7 +853,7 @@ class Gtfs {
    *
    * @param {Map.<string, Object>} indexedTrips Map of trips properly indexed (see schema.js).
    */
-  setIndexedTrips(indexedTrips) { setIndexedItems(this, 'trips', indexedTrips); }
+  setIndexedTrips(indexedTrips) { setTable(this, 'trips', indexedTrips); }
 
   /**
    * Reset the map of indexed trips.
@@ -918,7 +982,7 @@ class Gtfs {
    *
    * @param {Map.<string, Map.<string, Object>>} indexedStopTimes Map of stopTimes properly indexed (see schema.js).
    */
-  setIndexedStopTimes(indexedStopTimes) { setIndexedItems(this, 'stop_times', indexedStopTimes); }
+  setIndexedStopTimes(indexedStopTimes) { setTable(this, 'stop_times', indexedStopTimes); }
 
   /**
    * Reset the map of indexed stop times.
@@ -1023,7 +1087,7 @@ class Gtfs {
    *
    * @param {Map.<string, Object>} indexedCalendars Map of calendars properly indexed (see schema.js).
    */
-  setIndexedCalendars(indexedCalendars) { setIndexedItems(this, 'calendar', indexedCalendars); }
+  setIndexedCalendars(indexedCalendars) { setTable(this, 'calendar', indexedCalendars); }
 
 
   /* calendar_dates.txt */
@@ -1155,15 +1219,155 @@ class Gtfs {
    *   Map.<string, Map.<string, Object>>
    * } indexedCalendarDates Map of calendarDates properly indexed (see schema.js).
    */
-  setIndexedCalendarDates(indexedCalendarDates) { setIndexedItems(this, 'calendar_dates', indexedCalendarDates); }
+  setIndexedCalendarDates(indexedCalendarDates) { setTable(this, 'calendar_dates', indexedCalendarDates); }
 
 
   /* fare_attributes.txt */
-  // Not used, therefore not implemented
+
+  /**
+   * Adds a fareAttribute in the GTFS.
+   *
+   * @param {Object} fareAttribute - FareAttribute to add in the GTFS.
+   */
+  addFareAttribute(fareAttribute) { addItems(this, 'fare_attributes', [fareAttribute]); }
+
+  /**
+   * Adds a list of fareAttributes in the GTFS.
+   *
+   * @param {Array.<Object>} fareAttributes - Array of fareAttributes to add in the GTFS.
+   */
+  addFareAttributes(fareAttributes) { addItems(this, 'fare_attributes', fareAttributes); }
+
+  /**
+   * Apply a function to each fareAttribute in the GTFS.
+   *
+   * @param {function} iterator - Function which will be applied on every fareAttribute.
+   */
+  forEachFareAttribute(iterator) { forEachItem(this, 'fare_attributes', iterator); }
+
+  /**
+   * Get the indexed fareAttributes of the GTFS. The indexation is defined in the schema (see schema.js).
+   *
+   * @return {Map.<string, Object>} Indexed fareAttributes.
+   */
+  getIndexedFareAttributes() { return getIndexedTable(this, 'fare_attributes'); }
+
+  /**
+   * Get the number of fareAttributes defined
+   *
+   * @returns {number}
+   */
+  getNumberOfFareAttributes() { return getNumberOfItemsInTable(this, 'fare_attributes'); }
+
+  /**
+   * Get the fareAttribute using its fare_id.
+   *
+   * WARNING: Will return the fareAttribute which is indexed with the fare_id passed as argument. If the internal value
+   * of the fareAttribute's fare_id has been changed but not it's indexing, the result will be wrong.
+   *
+   * @param {string} fareId - Index of the fareAttribute.
+   * @return {Object} The fareAttribute indexed by the fare_id passed as parameter.
+   */
+  getFareAttributeWithId(fareId) { return getters.getItemWithIndex(fareId, 'fare_attributes', this); }
+
+  /**
+   * Removes a fareAttribute of the GTFS.
+   *
+   * WARNING: It will remove the fareAttribute indexed by the `fareAttribute.fare_id` of the fareAttribute passed as
+   * parameter.
+   *
+   * @param {Object} fareAttribute - FareAttribute to remove of the GTFS.
+   */
+  removeFareAttribute(fareAttribute) { removeItems(this, 'fare_attributes', [fareAttribute]); }
+
+  /**
+   * Removes a list of fareAttributes of the GTFS.
+   *
+   * WARNING: It will remove the fareAttributes indexed by the `fareAttribute.fare_id` of the fareAttributes
+   * passed as parameter.
+   *
+   * @param {Array.<Object>} fareAttributes FareAttributes to remove of the GTFS.
+   */
+  removeFareAttributes(fareAttributes) { removeItems(this, 'fare_attributes', fareAttributes); }
+
+  /**
+   * Reset the map of indexed fareAttributes.
+   */
+  resetFareAttributes() { resetTable(this, 'fare_attributes'); }
+
+  /**
+   * Set the map of indexed fareAttributes.
+   *
+   * WARNING: The Map should be indexed as defined in schema.js
+   *
+   * @param {Map.<string, Object>} indexedFareAttributes Map of fareAttributes properly indexed (see schema.js).
+   */
+  setIndexedFareAttributes(indexedFareAttributes) { setTable(this, 'fare_attributes', indexedFareAttributes); }
 
 
   /* fare_rules.txt */
-  // Not used, therefore not implemented
+
+  /**
+   * Adds a fareRule in the GTFS.
+   *
+   * @param {Object} fareRule - FareRule to add in the GTFS.
+   */
+  addFareRule(fareRule) { addItems(this, 'fare_rules', [fareRule]); }
+
+  /**
+   * Adds a list of fareRules in the GTFS.
+   *
+   * @param {Array.<Object>} fareRules - Array of fareRules to add in the GTFS.
+   */
+  addFareRules(fareRules) { addItems(this, 'fare_rules', fareRules); }
+
+  /**
+   * Apply a function to each fareRule in the GTFS.
+   *
+   * @param {function} iterator - Function which will be applied on every fareRule.
+   */
+  forEachFareRule(iterator) { forEachItem(this, 'fare_rules', iterator); }
+
+  /**
+   * Get the number of fareRule defined
+   *
+   * @returns {number}
+   */
+  getNumberOfFareRules() { return getNumberOfItemsInTable(this, 'fare_rules'); }
+
+  /**
+   * Check if a fareRule is in the GTFS.
+   *
+   * @param {Object} fareRule - FareRule which could be in the GTFS.
+   * @returns {Boolean} true is the item is in the GTFS, false otherwise.
+   */
+  hasFareRule(fareRule) { return hasItemInTable(this, fareRule, 'fare_rules'); }
+
+  /**
+   * Removes a fareRule of the GTFS.
+   *
+   * @param {Object} fareRule - FareRule to remove of the GTFS.
+   */
+  removeFareRule(fareRule) { removeItems(this, 'fare_rules', [fareRule]); }
+
+  /**
+   * Removes a list of fareRules of the GTFS.
+   *
+   * @param {Array.<Object>} fareRules - FareRules to remove of the GTFS.
+   */
+  removeFareRules(fareRules) { removeItems(this, 'fare_rules', fareRules); }
+
+  /**
+   * Reset the map of indexed fareRules.
+   */
+  resetFareRules() { resetTable(this, 'fare_rules'); }
+
+  /**
+   * Set the Set of fareRules.
+   *
+   * @param {Set.<Object>} fareRules - Set of fareRules properly indexed (see schema.js).
+   */
+  setFareRules(fareRules) { setTable(this, 'fare_rules', fareRules); }
 
 
   /* shapes.txt */
@@ -1266,7 +1470,7 @@ class Gtfs {
    *
    * @param {Map.<string, Object>} indexedShapePoints Map of shapePoints properly indexed (see schema.js).
    */
-  setIndexedShapePoints(indexedShapePoints) { setIndexedItems(this, 'shapes', indexedShapePoints); }
+  setIndexedShapePoints(indexedShapePoints) { setTable(this, 'shapes', indexedShapePoints); }
 
 
   /* frequencies.txt */
@@ -1336,7 +1540,7 @@ class Gtfs {
    *
    * @param {Map.<string, Object>} indexedFrequencies Map of frequencies properly indexed (see schema.js).
    */
-  setIndexedFrequencies(indexedFrequencies) { setIndexedItems(this, 'frequencies', indexedFrequencies); }
+  setIndexedFrequencies(indexedFrequencies) { setTable(this, 'frequencies', indexedFrequencies); }
 
 
   /* transfers.txt */
@@ -1406,7 +1610,7 @@ class Gtfs {
    *
    * @param {Map.<string, Map.<string, Object>>} indexedTransfers Map of transfers properly indexed (see schema.js).
    */
-  setIndexedTransfers(indexedTransfers) { setIndexedItems(this, 'transfers', indexedTransfers); }
+  setIndexedTransfers(indexedTransfers) { setTable(this, 'transfers', indexedTransfers); }
 
 
   /* feed_info.txt */
@@ -1423,7 +1627,7 @@ class Gtfs {
    *
    * @param {Object} feedInfo The feed info object.
    */
-  setFeedInfo(feedInfo) { setIndexedItems(this, 'feed_info', feedInfo); }
+  setFeedInfo(feedInfo) { setTable(this, 'feed_info', feedInfo); }
 }
 
 module.exports = Gtfs;

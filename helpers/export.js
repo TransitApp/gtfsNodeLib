@@ -79,9 +79,10 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       will be fixed.
       2015-03-10
     */
+    const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
     const deepness = gtfs._schema.deepnessByTableName[tableName];
 
-    if (deepness === 0) {
+    if (indexKeys.singleton) {
       let item = gtfs.getIndexedTable(tableName);
       if (item) {
         if (gtfs._preExportItemFunction) {
@@ -98,7 +99,7 @@ function exportTable(tableName, gtfs, outputPath, callback) {
     let rowsBuffer = [];
 
     async.eachSeries(gtfs.getIndexedTable(tableName), acomb.ensureAsync(([key, object], subDone) => {
-      if (deepness === 1) {
+      if (deepness === 0 || deepness === 1) {
         if (gtfs._preExportItemFunction) {
           object = gtfs._preExportItemFunction(object, tableName, key);
         }
