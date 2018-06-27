@@ -41,7 +41,7 @@
     "eslint": "^3.16.0",
     "eslint-config-transit": "^1.0.3",
     "eslint-plugin-import": "^2.2.0",
-    "mocha": "^3.5.3"
+    "mocha": "^5.2.0"
   },
   "engines": {
     "node": "^8.1.4"

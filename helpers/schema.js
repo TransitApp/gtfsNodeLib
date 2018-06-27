@@ -131,6 +131,7 @@ const indexKeysByTableName = {
   calendar: { indexKey: 'service_id' },
   calendar_dates: { firstIndexKey: 'service_id', secondIndexKey: 'date' },
   fare_attributes: { indexKey: 'fare_id' },
+  fare_rules: { setOfItems: true },
   frequencies: { firstIndexKey: 'trip_id', secondIndexKey: 'start_time' },
   routes: { indexKey: 'route_id' },
   stop_times: { firstIndexKey: 'trip_id', secondIndexKey: 'stop_sequence' },
@@ -144,14 +145,13 @@ const indexKeysByTableName = {
 const tableNames = Object.keys(indexKeysByTableName);
 
 const deepnessByTableName = tableNames.reduce((accumulator, tableName) => {
-  if (indexKeysByTableName[tableName].singleton) {
+  const indexKeys = indexKeysByTableName[tableName];
+
+  if (indexKeys.singleton || indexKeys.setOfItems) {
     accumulator[tableName] = 0;
-  } else if (indexKeysByTableName[tableName].indexKey) {
+  } else if (indexKeys.indexKey) {
     accumulator[tableName] = 1;
-  } else if (
-    indexKeysByTableName[tableName].firstIndexKey &&
-    indexKeysByTableName[tableName].secondIndexKey
-  ) {
+  } else if (indexKeys.firstIndexKey && indexKeys.secondIndexKey) {
     accumulator[tableName] = 2;
   }
 
