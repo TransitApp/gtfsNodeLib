@@ -4,6 +4,7 @@
 
 const infoLog = require('debug')('gtfsNodeLib:i');
 const fs = require('fs-extra');
+const { StringDecoder } = require('string_decoder');
 
 const eachWithLog = require('./logging_iterator_wrapper');
 const { fromCsvStringToArray } = require('./csv');
@@ -49,9 +50,19 @@ function getRows(buffer, regexPatternObjects, tableName) {
   let position = 0;
   const batchLength = 50000;
   let merge;
+  /*
+   Use string decoder to properly decode utf8 characters. Characters not in the basic ASCII take more
+   than one byte.
+
+   If the end of the batch cuts one of those characters, then we will yield weird characters.
+
+   decoder will accumulate any "lost" utf8 character at the end of the batch and accumulate it for the next
+   iteration.
+    */
+  const decoder = new StringDecoder('utf8');
 
   while (position < buffer.length) {
-    rowsSlice = buffer.toString('utf8', position, Math.min(buffer.length, position + batchLength));
+    rowsSlice = decoder.write(buffer.slice(position, Math.min(buffer.length, position + batchLength)));
 
     if (regexPatternObjects) {
       regexPatternObjects.forEach(({ regex, pattern }) => {
