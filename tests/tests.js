@@ -86,6 +86,24 @@ describe('Tests on GTFS', () => {
     done();
   });
 
+  it('Tests on bad decoding of UTF-8 characters when decoding by batch', (done) => {
+    const path = `${__dirname}/samples/3/`;
+    const gtfsWithoutFix = new Gtfs(path);
+
+    expect(() => gtfsWithoutFix.getIndexedStops()).to.not.throw();
+
+    gtfsWithoutFix.forEachStop((stop) => {
+      /*
+      The stop_code of the samples/3 only contains the character ê.
+      If replacing ê by empty string still yields any character => there was an error decoding.
+      */
+      const wronglyDecodedCharacters = stop.stop_code.replace(/ê*/g, '');
+      expect(wronglyDecodedCharacters.length).to.equals(0);
+    });
+
+    done();
+  });
+
   it('Test getters helpers: getActualKeysForTable', (done) => {
     const gtfs = new Gtfs();
     const funkyStop = {};
