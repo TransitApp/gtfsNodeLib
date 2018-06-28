@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Tests" type="mocha-javascript-test-runner" factoryName="Mocha">
+    <node-interpreter>project</node-interpreter>
+    <node-options />
+    <working-directory>$PROJECT_DIR$</working-directory>
+    <pass-parent-env>true</pass-parent-env>
+    <ui>bdd</ui>
+    <extra-mocha-options />
+    <test-kind>DIRECTORY</test-kind>
+    <test-directory>$PROJECT_DIR$/tests</test-directory>
+    <recursive>false</recursive>
+    <method />
+  </configuration>
+</component>
