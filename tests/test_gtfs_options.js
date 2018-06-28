@@ -55,7 +55,8 @@ describe('Tests on GTFS constructor options', () => {
           'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
           'route_text_color,route_sort_order,temp\n' +
           'route_0,agency_0,R0,Route 0,,3,,,,,some value\n' +
-          'route_x,agency_0,RX,"""Route X""",,3,,,,,some value\n'
+          'route_x,agency_0,RX,"""Route X""",,3,,,,,some value\n' +
+          'route_utf8,agency_0,RÛTF8,route_êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,,3,,,,,some value\n'
         );
 
         fs.remove(outputPath, (removeError) => {
@@ -92,7 +93,8 @@ describe('Tests on GTFS constructor options', () => {
           'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
           'route_text_color,route_sort_order,temp\n' +
           'route_0,agency_0,R0,Route 0,,3,,,,,"{""key"":""value""}"\n' +
-          'route_x,agency_0,RX,"""Route X""",,3,,,,,"{""key"":""value""}"\n'
+          'route_x,agency_0,RX,"""Route X""",,3,,,,,"{""key"":""value""}"\n' +
+          'route_utf8,agency_0,RÛTF8,route_êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,,3,,,,,"{""key"":""value""}"\n'
         );
 
         fs.remove(outputPath, (removeError) => {

@@ -1,3 +1,4 @@
 agency_id,route_id,route_short_name,route_long_name,route_type
 agency_0,route_0,R0,Route 0,3
 agency_0,route_x,RX,"""Route X""",3
+agency_0,route_utf8,RÛTF8,route_êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα'´`,3
