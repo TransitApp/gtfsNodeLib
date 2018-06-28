@@ -42,7 +42,9 @@ describe('Tests on GTFS', () => {
           'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
           'route_text_color,route_sort_order,some_extra_route_field\n' +
           'route_0,agency_0,R0,Route 0,Some new description,3,,,,,some_extra_route_value\n' +
-          'route_x,agency_0,RX,"""Route X""",Some new description,3,,,,,some_extra_route_value\n'
+          'route_x,agency_0,RX,"""Route X""",Some new description,3,,,,,some_extra_route_value\n' +
+          'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,' +
+          'Some new description,3,,,,,some_extra_route_value\n'
         );
 
         fs.readFile(`${outputPath}feed_info.txt`, (readFeedInfoError, feedInfoTxt) => {
@@ -80,6 +82,25 @@ describe('Tests on GTFS', () => {
     const gtfsWithFix = new Gtfs(path, { regexPatternObjectsByTableName });
 
     expect(gtfsWithFix.getStopWithId('stop_1').stop_desc).to.equal('Some "other" stop');
+
+    done();
+  });
+
+  it('Tests on bad decoding of UTF-8 characters when decoding by batch', (done) => {
+    const path = `${__dirname}/samples/3/`;
+    const gtfs = new Gtfs(path);
+
+    expect(() => gtfs.getIndexedStops()).to.not.throw();
+
+    gtfs.forEachStop((stop) => {
+      /*
+      The stop_code of the samples/3 only contains the character ê.
+      That character takes two bytes in UTF-8.
+      If replacing ê by empty string still yields any character => there was an error decoding.
+      */
+      const wronglyDecodedCharacters = stop.stop_code.replace(/ê*/g, '');
+      expect(wronglyDecodedCharacters.length).to.equals(0);
+    });
 
     done();
   });
