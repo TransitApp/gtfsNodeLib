@@ -43,7 +43,7 @@ describe('Tests on GTFS', () => {
           'route_text_color,route_sort_order,some_extra_route_field\n' +
           'route_0,agency_0,R0,Route 0,Some new description,3,,,,,some_extra_route_value\n' +
           'route_x,agency_0,RX,"""Route X""",Some new description,3,,,,,some_extra_route_value\n' +
-          'route_utf8,agency_0,RÛTF8,route_êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,' +
+          'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,' +
           'Some new description,3,,,,,some_extra_route_value\n'
         );
 
