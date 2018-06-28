@@ -88,13 +88,14 @@ describe('Tests on GTFS', () => {
 
   it('Tests on bad decoding of UTF-8 characters when decoding by batch', (done) => {
     const path = `${__dirname}/samples/3/`;
-    const gtfsWithoutFix = new Gtfs(path);
+    const gtfs = new Gtfs(path);
 
-    expect(() => gtfsWithoutFix.getIndexedStops()).to.not.throw();
+    expect(() => gtfs.getIndexedStops()).to.not.throw();
 
-    gtfsWithoutFix.forEachStop((stop) => {
+    gtfs.forEachStop((stop) => {
       /*
       The stop_code of the samples/3 only contains the character ê.
+      That character takes two bytes in UTF-8.
       If replacing ê by empty string still yields any character => there was an error decoding.
       */
       const wronglyDecodedCharacters = stop.stop_code.replace(/ê*/g, '');
