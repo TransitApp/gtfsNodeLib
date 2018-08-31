@@ -115,10 +115,10 @@ function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
     const arrayOfValues = fromCsvStringToArray(row, tableName, gtfs).map(key => key.trim());
 
     if (arrayOfValues !== null) {
-      const item = sortedKeys.reduce((accumulator, key, i) => {
-        accumulator[key] = arrayOfValues[i];
-        return accumulator;
-      }, {});
+      const item = {};
+      for (let i = 0; i < sortedKeys.length; i += 1) {
+        item[sortedKeys[i]] = arrayOfValues[i];
+      }
 
       if (sortedKeys.length !== arrayOfValues.length) {
         if (shouldThrow === true) {
