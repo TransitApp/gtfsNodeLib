@@ -38,6 +38,11 @@ function addItems(gtfs, tableName, items) {
 
   if (indexKeys.firstIndexKey && indexKeys.secondIndexKey) {
     items.forEach((item) => {
+      // GtfsRow object should have a clone method
+      if (item.clone === undefined) {
+        item = gtfs.createGtfsObjectFromSimpleObject(item);
+      }
+
       if (indexedTable.has(item[indexKeys.firstIndexKey]) === false) {
         indexedTable.set(item[indexKeys.firstIndexKey], new Map());
       }
