@@ -134,15 +134,36 @@ describe('Tests on GTFS', () => {
       ',"stop_desc":"Some stop","stop_lat":"37.728631","stop_lon":"-122.431282"}');
 
     stop.temp = {};
-    expect(stop.toJSON()).to.equal('{"temp":{},"stop_id":"stop_0","stop_code":"SC0","stop_name":' +
-      '"Stop 0","stop_desc":"Some stop","stop_lat":"37.728631","stop_lon":"-122.431282"}');
+    expect(stop.toJSON()).to.equal('{"stop_id":"stop_0","stop_code":"SC0","stop_name":"Stop 0",' +
+      '"stop_desc":"Some stop","stop_lat":"37.728631","stop_lon":"-122.431282","temp":{}}');
 
     expect(stop.stop_name).to.equal('Stop 0');
+    stop.temp.test = 'test';
+    expect(stop.temp.test).to.equal('test');
     const clone = stop.clone();
     clone.stop_name = 'Some other stop';
 
     expect(stop.stop_name).to.equal('Stop 0');
     expect(clone.stop_name).to.equal('Some other stop');
+    expect(clone.temp.test).to.equal('test');
+
+    done();
+  });
+
+  it('Tests create gtfs object', (done) => {
+    const path = `${__dirname}/samples/1/`;
+    const gtfs = new Gtfs(path);
+
+    const emptyCalendar = {
+      monday: '0', tuesday: '0', wednesday: '0', thursday: '0', friday: '0', saturday: '0', sunday: '0',
+    };
+
+    const gtfsEmptyCal = gtfs.createGtfsObjectFromSimpleObject(emptyCalendar);
+    expect(gtfsEmptyCal.monday).to.equal(emptyCalendar.monday);
+    expect(gtfsEmptyCal.tuesday).to.equal(emptyCalendar.tuesday);
+    expect(gtfsEmptyCal.wednesday).to.equal(emptyCalendar.wednesday);
+    expect(gtfsEmptyCal.thursday).to.equal(emptyCalendar.thursday);
+    expect(gtfsEmptyCal.friday).to.equal(emptyCalendar.friday);
 
     done();
   });

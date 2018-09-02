@@ -99,51 +99,7 @@ function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
 
   const sortedKeys = fromCsvStringToArray(rows[0], tableName).map(key => key.trim());
 
-  // eslint-disable-next-line func-names
-  const GtfsRow = function GtfsRowConstructor(arrayOfValues) {
-    // Use one letter far to use less memory
-    // Since this object will be repeated millions of time
-    Object.defineProperty(this, 'v', {
-      value: arrayOfValues,
-      enumerable: false, // Enumerable false allow us to now show 'v' in enum of item
-    });
-  };
-
-  // eslint-disable-next-line func-names
-  GtfsRow.prototype.clone = function clone() {
-    return new GtfsRow(JSON.parse(JSON.stringify(this.v)));
-  };
-
-  // eslint-disable-next-line func-names
-  GtfsRow.prototype.toJSON = function clone() {
-    const jsonObj = {};
-
-    for (const key of Object.keys(this)) {
-      jsonObj[key] = this[key];
-    }
-
-    for (const key in Object.getPrototypeOf(this)) {
-      const value = this[key];
-      if (typeof value !== 'function') {
-        jsonObj[key] = this[key];
-      }
-    }
-
-    return JSON.stringify(jsonObj);
-  };
-
-  for (const [index, key] of sortedKeys.entries()) {
-    Object.defineProperty(GtfsRow.prototype, key, {
-      get() {
-        return this.v[index];
-      },
-      set(newValue) {
-        this.v[index] = newValue;
-      },
-      configurable: true,
-      enumerable: true,
-    });
-  }
+  const GtfsRow = createGtfsClassForKeys(sortedKeys);
 
   checkThatKeysIncludeIndexKeys(sortedKeys, indexKeys, tableName);
 
@@ -215,3 +171,67 @@ function checkThatKeysIncludeIndexKeys(sortedKeys, indexKeys, tableName) {
     );
   }
 }
+
+function createGtfsClassForKeys(sortedKeys) {
+  // eslint-disable-next-line func-names
+  const GtfsRow = function GtfsRowConstructor(arrayOfValues) {
+    // Use one letter far to use less memory
+    // Since this object will be repeated millions of time
+    Object.defineProperty(this, 'v', {
+      value: arrayOfValues,
+      enumerable: false, // Enumerable false allow us to now show 'v' in enum of item
+    });
+  };
+
+  // eslint-disable-next-line func-names
+  GtfsRow.prototype.clone = function clone() {
+    const newRow = new GtfsRow(JSON.parse(JSON.stringify(this.v)));
+
+    for (const key of Object.keys(this)) {
+      newRow[key] = JSON.parse(JSON.stringify(this[key]));
+    }
+
+    return newRow;
+  };
+
+  // eslint-disable-next-line func-names
+  GtfsRow.prototype.toJSON = function clone() {
+    const jsonObj = {};
+
+
+// eslint-disable-next-line
+    for (const key in Object.getPrototypeOf(this)) {
+      // noinspection JSUnfilteredForInLoop
+      const value = this[key];
+      if (typeof value !== 'function') {
+        jsonObj[key] = this[key];
+      }
+    }
+
+    for (const key of Object.keys(this)) {
+      jsonObj[key] = this[key];
+    }
+
+    return JSON.stringify(jsonObj);
+  };
+
+  for (const [index, key] of sortedKeys.entries()) {
+    Object.defineProperty(GtfsRow.prototype, key, {
+      get() {
+        return this.v[index];
+      },
+      set(newValue) {
+        this.v[index] = newValue;
+      },
+      configurable: true,
+      enumerable: true,
+    });
+  }
+
+  return GtfsRow;
+}
+
+exports.createGtfsObjectFromSimpleObject = (obj) => {
+  const GtfsRow = createGtfsClassForKeys(Object.keys(obj));
+  return new GtfsRow(Object.values(obj));
+};

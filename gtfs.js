@@ -8,7 +8,7 @@ const fs = require('fs-extra');
 const forEachWithLog = require('./helpers/logging_iterator_wrapper');
 const { exportGtfs } = require('./helpers/export');
 const getters = require('./helpers/getters');
-const { importTable } = require('./helpers/import');
+const { importTable, createGtfsObjectFromSimpleObject } = require('./helpers/import');
 const defaultSchema = require('./helpers/schema');
 
 /**
@@ -172,7 +172,7 @@ function setTable(gtfs, tableName, table) {
 
   if (indexKeys.setOfItems && table instanceof Set === true) {
     gtfs._tables.set(tableName, table);
-  } else if (indexKeys.singleton && table instanceof Set === false && table instanceof Map === false ) {
+  } else if (indexKeys.singleton && table instanceof Set === false && table instanceof Map === false) {
     gtfs._tables.set(tableName, table);
   } else if (indexKeys.setOfItems !== true && indexKeys.singleton !== true && table instanceof Map === true) {
     gtfs._tables.set(tableName, table);
@@ -1628,6 +1628,9 @@ class Gtfs {
    * @param {Object} feedInfo The feed info object.
    */
   setFeedInfo(feedInfo) { setTable(this, 'feed_info', feedInfo); }
+
+  /** Create a gtfs object from a simple object */
+  createGtfsObjectFromSimpleObject(obj) { return createGtfsObjectFromSimpleObject(obj); }
 }
 
 module.exports = Gtfs;
