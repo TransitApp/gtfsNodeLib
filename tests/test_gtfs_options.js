@@ -72,7 +72,7 @@ describe('Tests on GTFS constructor options', () => {
     const path = `${__dirname}/samples/1/`;
     const postImportItemFunction = (item) => { item.temp = { key: 'value' }; };
     const preExportItemFunction = (item) => {
-      const item2 = JSON.parse(JSON.stringify(item));
+      const item2 = item.clone();
       item2.temp = JSON.stringify(item.temp);
       return item2;
     };
