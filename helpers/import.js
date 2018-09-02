@@ -114,6 +114,24 @@ function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
     return new GtfsRow(JSON.parse(JSON.stringify(this.v)));
   };
 
+  // eslint-disable-next-line func-names
+  GtfsRow.prototype.toJSON = function clone() {
+    const jsonObj = {};
+
+    for (const key of Object.keys(this)) {
+      jsonObj[key] = this[key];
+    }
+
+    for (const key in Object.getPrototypeOf(this)) {
+      const value = this[key];
+      if (typeof value !== 'function') {
+        jsonObj[key] = this[key];
+      }
+    }
+
+    return JSON.stringify(jsonObj);
+  };
+
   for (const [index, key] of sortedKeys.entries()) {
     Object.defineProperty(GtfsRow.prototype, key, {
       get() {

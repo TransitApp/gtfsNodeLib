@@ -123,4 +123,27 @@ describe('Tests on GTFS', () => {
 
     done();
   });
+
+  it('Tests clone and toJSON', (done) => {
+    const path = `${__dirname}/samples/1/`;
+    const gtfs = new Gtfs(path);
+
+    const stop = gtfs.getStopWithId('stop_0');
+
+    expect(stop.toJSON()).to.equal('{"stop_id":"stop_0","stop_code":"SC0","stop_name":"Stop 0"' +
+      ',"stop_desc":"Some stop","stop_lat":"37.728631","stop_lon":"-122.431282"}');
+
+    stop.temp = {};
+    expect(stop.toJSON()).to.equal('{"temp":{},"stop_id":"stop_0","stop_code":"SC0","stop_name":' +
+      '"Stop 0","stop_desc":"Some stop","stop_lat":"37.728631","stop_lon":"-122.431282"}');
+
+    expect(stop.stop_name).to.equal('Stop 0');
+    const clone = stop.clone();
+    clone.stop_name = 'Some other stop';
+
+    expect(stop.stop_name).to.equal('Stop 0');
+    expect(clone.stop_name).to.equal('Some other stop');
+
+    done();
+  });
 });
