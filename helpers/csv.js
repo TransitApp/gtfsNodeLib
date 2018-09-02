@@ -13,7 +13,7 @@ function formatRegularValue(value) {
 
   const type = typeof value;
   if (type === 'object') {
-    value = JSON.stringify(value)
+    value = JSON.stringify(value);
   } else if (type !== 'string') {
     value = String(value);
   }
