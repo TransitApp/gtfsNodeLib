@@ -99,6 +99,34 @@ function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
 
   const sortedKeys = fromCsvStringToArray(rows[0], tableName).map(key => key.trim());
 
+  // eslint-disable-next-line func-names
+  const GtfsRow = function GtfsRowConstructor(arrayOfValues) {
+    // Use one letter far to use less memory
+    // Since this object will be repeated millions of time
+    Object.defineProperty(this, 'v', {
+      value: arrayOfValues,
+      enumerable: false, // Enumerable false allow us to now show 'v' in enum of item
+    });
+  };
+
+  // eslint-disable-next-line func-names
+  GtfsRow.prototype.clone = function clone() {
+    return new GtfsRow(JSON.parse(JSON.stringify(this.v)));
+  };
+
+  for (const [index, key] of sortedKeys.entries()) {
+    Object.defineProperty(GtfsRow.prototype, key, {
+      get() {
+        return this.v[index];
+      },
+      set(newValue) {
+        this.v[index] = newValue;
+      },
+      configurable: true,
+      enumerable: true,
+    });
+  }
+
   checkThatKeysIncludeIndexKeys(sortedKeys, indexKeys, tableName);
 
   eachWithLog(`Importation:${tableName}`, rows, (row, index) => {
@@ -115,10 +143,7 @@ function processRows(gtfs, tableName, indexKeys, rows, shouldThrow) {
     const arrayOfValues = fromCsvStringToArray(row, tableName, gtfs).map(key => key.trim());
 
     if (arrayOfValues !== null) {
-      const item = {};
-      for (let i = 0; i < sortedKeys.length; i += 1) {
-        item[sortedKeys[i]] = arrayOfValues[i];
-      }
+      const item = new GtfsRow(arrayOfValues);
 
       if (sortedKeys.length !== arrayOfValues.length) {
         if (shouldThrow === true) {
