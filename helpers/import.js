@@ -195,11 +195,10 @@ function createGtfsClassForKeys(sortedKeys) {
   };
 
   // eslint-disable-next-line func-names
-  GtfsRow.prototype.toJSON = function clone() {
+  GtfsRow.prototype.toSimpleObject = function clone() {
     const jsonObj = {};
 
-
-// eslint-disable-next-line
+    // eslint-disable-next-line
     for (const key in Object.getPrototypeOf(this)) {
       // noinspection JSUnfilteredForInLoop
       const value = this[key];
@@ -212,7 +211,11 @@ function createGtfsClassForKeys(sortedKeys) {
       jsonObj[key] = this[key];
     }
 
-    return JSON.stringify(jsonObj);
+    return jsonObj;
+  };
+
+  GtfsRow.prototype.toJSON = function clone() {
+    return JSON.stringify(this.toSimpleObject());
   };
 
   for (const [index, key] of sortedKeys.entries()) {
