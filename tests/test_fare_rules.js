@@ -7,9 +7,9 @@ describe('Tests on GTFS fare rules', () => {
   it('Tests on gtfs.getNumberOfFareRules(), .addFareRules?(), .getFareRules?() and .hasFareRule', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
-    const fareRule1 = buildFareRule(1);
-    const fareRule2 = buildFareRule(2);
-    const fareRule3 = buildFareRule(3);
+    const fareRule1 = buildFareRule(1, gtfs);
+    const fareRule2 = buildFareRule(2, gtfs);
+    const fareRule3 = buildFareRule(3, gtfs);
 
     expect(gtfs.getNumberOfFareRules()).to.equal(0);
     expect(gtfs.hasFareRule(fareRule1)).to.equal(false);
@@ -50,9 +50,9 @@ describe('Tests on GTFS fare rules', () => {
   it('Tests on gtfs.setFareRules() and .resetFareRules', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
-    const fareRule1 = buildFareRule(1);
-    const fareRule2 = buildFareRule(2);
-    const fareRule3 = buildFareRule(3);
+    const fareRule1 = buildFareRule(1, gtfs);
+    const fareRule2 = buildFareRule(2, gtfs);
+    const fareRule3 = buildFareRule(3, gtfs);
 
     expect(gtfs.getNumberOfFareRules()).to.equal(0);
     expect(gtfs.hasFareRule(fareRule1)).to.equal(false);
@@ -79,7 +79,7 @@ describe('Tests on GTFS fare rules', () => {
   it('Tests on gtfs.forEachFareRule()', (done) => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
-    gtfs.addFareRules([buildFareRule(1), buildFareRule(3)]);
+    gtfs.addFareRules([buildFareRule(1, gtfs), buildFareRule(3, gtfs)]);
 
     const fareIds = [];
     gtfs.forEachFareRule(fareRule => fareIds.push(fareRule.fare_id));
@@ -90,12 +90,12 @@ describe('Tests on GTFS fare rules', () => {
   });
 });
 
-function buildFareRule(integer) {
-  return {
+function buildFareRule(integer, gtfs) {
+  return gtfs.createGtfsObjectFromSimpleObject({
     'fare_id': `fareRule.fare_id.${integer}`,
     'route_id': `fareRule.route_id.${integer}`,
     'origin_id': `fareRule.origin_id.${integer}`,
     'destination_id': `fareRule.destination_id.${integer}`,
     'contains_id': `fareRule.contains_id.${integer}`,
-  };
+  });
 }

@@ -107,13 +107,14 @@ describe('Tests on GTFS', () => {
 
   it('Test getters helpers: getActualKeysForTable', (done) => {
     const gtfs = new Gtfs();
-    const funkyStop = {};
-    gtfs.addStop(funkyStop);
 
     expect(gtfs.getSchema().keysByTableName.stops).to.deep.equal(gtfs.getActualKeysForTable('stops'));
 
+    const funkyStop = {};
     funkyStop.route_funky_name = 'Tshboom tshboom';
     funkyStop.route_esoteric_float = 120.37;
+    gtfs.addStop(funkyStop);
+
     const standardRouteKeys = gtfs.getSchema().keysByTableName.stops;
     const actualRouteKeys = gtfs.getActualKeysForTable('stops');
 

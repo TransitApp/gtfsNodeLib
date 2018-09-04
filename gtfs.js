@@ -23,6 +23,14 @@ function addItems(gtfs, tableName, items) {
     throw new Error(`items must be an array instead of: ${items}`);
   }
 
+  items = items.map((item) => {
+    // GtfsRow object should have a clone method
+    if (item.clone === undefined) {
+      return gtfs.createGtfsObjectFromSimpleObject(item);
+    }
+    return item;
+  });
+
   const indexedTable = gtfs.getIndexedTable(tableName);
   const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
 
@@ -38,11 +46,6 @@ function addItems(gtfs, tableName, items) {
 
   if (indexKeys.firstIndexKey && indexKeys.secondIndexKey) {
     items.forEach((item) => {
-      // GtfsRow object should have a clone method
-      if (item.clone === undefined) {
-        item = gtfs.createGtfsObjectFromSimpleObject(item);
-      }
-
       if (indexedTable.has(item[indexKeys.firstIndexKey]) === false) {
         indexedTable.set(item[indexKeys.firstIndexKey], new Map());
       }
