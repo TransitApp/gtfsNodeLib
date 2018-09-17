@@ -25,7 +25,7 @@ function getActualKeysForTable(gtfs, tableName) {
     sampleItem = getSample(getSample(table));
   }
 
-  if (sampleItem && !sampleItem instanceof Set) {
+  if (sampleItem && !(sampleItem instanceof Set)) {
     Object.keys(sampleItem.toSimpleObject()).forEach((key) => {
       if (gtfs._schema.keysByTableName[tableName].includes(key) === false) {
         keys.push(key);
