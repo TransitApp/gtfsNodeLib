@@ -184,7 +184,7 @@ function createGtfsClassForKeys(sortedKeys) {
   };
 
   // eslint-disable-next-line func-names
-  GtfsRow.prototype.clone = function clone() {
+  GtfsRow.prototype.clone = function () {
     const newRow = new GtfsRow(JSON.parse(JSON.stringify(this.v)));
 
     for (const key of Object.keys(this)) {
@@ -195,7 +195,7 @@ function createGtfsClassForKeys(sortedKeys) {
   };
 
   // eslint-disable-next-line func-names
-  GtfsRow.prototype.toSimpleObject = function clone() {
+  GtfsRow.prototype.toSimpleObject = function () {
     const jsonObj = {};
 
     // eslint-disable-next-line
@@ -214,7 +214,8 @@ function createGtfsClassForKeys(sortedKeys) {
     return jsonObj;
   };
 
-  GtfsRow.prototype.toJSON = function clone() {
+   // eslint-disable-next-line func-names
+  GtfsRow.prototype.toJSON = function () {
     return JSON.stringify(this.toSimpleObject());
   };
 
