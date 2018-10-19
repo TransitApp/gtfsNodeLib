@@ -8,7 +8,7 @@ describe('Tests on GTFS routes', () => {
     const path = `${__dirname}/samples/1`;
     const gtfs = new Gtfs(path);
 
-    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_utf8', 'route_x']);
+    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_utf8', 'route_x', 'route_y']);
 
     const route0 = gtfs.getRouteWithId('route_0');
     expect(route0.route_long_name).to.equal('Route 0');
@@ -17,21 +17,21 @@ describe('Tests on GTFS routes', () => {
     expect(routeX.route_long_name).to.equal('"Route X"');
 
     gtfs.addRoute({ route_id: 'route_1', route_long_name: 'Route 1' });
-    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_utf8', 'route_x']);
+    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_utf8', 'route_x', 'route_y']);
 
     gtfs.addRoutes([
       { route_id: 'route_2', route_long_name: 'Route 2' },
       { route_id: 'route_3', route_long_name: 'Route 3' },
     ]);
     expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_2',
-      'route_3', 'route_utf8', 'route_x']);
+      'route_3', 'route_utf8', 'route_x', 'route_y']);
 
     gtfs.removeRoute(gtfs.getRouteWithId('route_2'));
     expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0', 'route_1', 'route_3',
-      'route_utf8', 'route_x']);
+      'route_utf8', 'route_x', 'route_y']);
 
     gtfs.removeRoutes([gtfs.getRouteWithId('route_0'), gtfs.getRouteWithId('route_3')]);
-    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_1', 'route_utf8', 'route_x']);
+    expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_1', 'route_utf8', 'route_x', 'route_y']);
 
     gtfs.setIndexedRoutes(new Map([['route_0', route0]]));
     expect(sortedKeys(gtfs.getIndexedRoutes())).to.deep.equal(['route_0']);
@@ -56,7 +56,7 @@ describe('Tests on GTFS routes', () => {
   it('Tests on gtfs.getNumberOfRoutes()', (done) => {
     const gtfs = new Gtfs(`${__dirname}/samples/1`);
 
-    expect(gtfs.getNumberOfRoutes()).to.equal(3);
+    expect(gtfs.getNumberOfRoutes()).to.equal(4);
 
     gtfs.resetRoutes();
 
@@ -79,7 +79,7 @@ describe('Tests on GTFS routes', () => {
   it('Tests on gtfs.resetRoutes()', (done) => {
     const gtfs = new Gtfs(`${__dirname}/samples/1`);
 
-    expect(gtfs.getIndexedRoutes().size).to.equal(3);
+    expect(gtfs.getIndexedRoutes().size).to.equal(4);
 
     gtfs.resetRoutes();
 

@@ -73,7 +73,10 @@ function fromCsvStringToArray(string, tableName) {
   }
 
   if (!reValid.test(string)) {
-    if (string.match(/,"""/)) { // Handle the case with 3 " at start/end of string
+    if (string.match(/""""/)) {
+      string = string.replace(/""""/g, '\\"\\"');
+      return fromCsvStringToArray(string, tableName);
+    } else if (string.match(/,"""/)) { // Handle the case with 3 " at start/end of string
       string = string.replace(/,"""/g, ',"\\"');
       return fromCsvStringToArray(string, tableName);
     } else if (string.match(/""",/)) {
