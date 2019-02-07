@@ -73,7 +73,11 @@ function fromCsvStringToArray(string, tableName) {
   }
 
   if (!reValid.test(string)) {
-    if (string.match(/""""/)) {
+
+    if (string.match(/,"(("")+)",/) ) { // remove all extra double-quote if value should be -> ""
+      string = string.replace(/,"(("")+)",/g, ',"\\"\\"",');
+      return fromCsvStringToArray(string, tableName);
+    } else if (string.match(/""""/) ) {
       string = string.replace(/""""/g, '\\"\\"');
       return fromCsvStringToArray(string, tableName);
     } else if (string.match(/,"""/)) { // Handle the case with 3 " at start/end of string
@@ -86,6 +90,7 @@ function fromCsvStringToArray(string, tableName) {
       string = string.replace(/""/g, '\\"');
       return fromCsvStringToArray(string, tableName);
     }
+    
     process.notices.addWarning(__filename, `Row not valid in table ${tableName}: ${string}`);
     return [];
   }
