@@ -74,8 +74,8 @@ function fromCsvStringToArray(string, tableName) {
 
   if (!reValid.test(string)) {
 
-    if (string.match(/,"(("")+)",/g) ) { // remove all extra double-quote if value should be an empty string
-      string = string.replace(/,"(("")+)",/g, ',"",');
+    if (string.match(/,"(("")+)",/) ) { // remove all extra double-quote if value should be -> ""
+      string = string.replace(/,"(("")+)",/g, ',"\\"\\"",');
       return fromCsvStringToArray(string, tableName);
     } else if (string.match(/""""/) ) {
       string = string.replace(/""""/g, '\\"\\"');
