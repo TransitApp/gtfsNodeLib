@@ -149,6 +149,7 @@ exports.exportGtfs = (gtfs, outputPath, callback) => {
   if (typeof outputPath !== 'string') {
     throw new Error(`Gtfs need a valid output path as string, instead of: "${outputPath}".`);
   }
+
   if (outputPath.match(/\/$/) === null) {
     outputPath += '/';
   }
