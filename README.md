@@ -48,11 +48,6 @@ gtfs.exportAtPath('somePathWhereYouWantToExportTheGtfs', (error) => {
 });
 ```
 
-## Keep in mind: synchronous loading and indexes
-
-This project is Transit's old GTFS implementation, using callbacks and plain objects. The main advantage is that 
-is it light and simple to use, but it has some drawbacks. The two biggest ones are the indexes and the synchronous loading of tables.
-
 ### Indexes
 
 The tables are loaded and saved as Maps, to allow o(1) access using the ids. The routes are therefore indexed by the 
@@ -90,7 +85,7 @@ but for the `shapes.txt`, since one item of the table is not a "shape" per-se, b
 ## Support and contact
 
 Please post any issues you find on [the repo of the project](https://github.com/TransitApp/gtfsNodeLib/issues). And 
-do not hesitate to contact [Transit App](https://github.com/TransitApp) or [Leo Frachet](https://github.com/LeoFrachet) directly if you have any questions.
+do not hesitate to contact [Transit App](https://github.com/TransitApp) directly if you have any questions.
 
 
 
