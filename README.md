@@ -35,7 +35,7 @@ gtfs.forEachStopTime((stopTime) => {
 gtfs.forEachFrequency((frequency) => {
   const fromStop = gtfs.getStopWithId(frequency.from_stop_id);
   const toStop = gtfs.getStopWithId(frequency.to_stop_id);
-  
+
   if (!fromStop || !toStop) {
     gtfs.removeFrequency(frequency);
   }
@@ -43,19 +43,14 @@ gtfs.forEachFrequency((frequency) => {
 
 gtfs.exportAtPath('somePathWhereYouWantToExportTheGtfs', (error) => {
   if (error) { throw error };
-  
+
   // Done
 });
 ```
 
-## Keep in mind: synchronous loading and indexes
-
-This project is Transit's old GTFS implementation, using callbacks and plain objects. The main advantage is that 
-is it light and simple to use, but it has some drawbacks. The two biggest ones are the indexes and the synchronous loading of tables.
-
 ### Indexes
 
-The tables are loaded and saved as Maps, to allow o(1) access using the ids. The routes are therefore indexed by the 
+The tables are loaded and saved as Maps, to allow o(1) access using the ids. The routes are therefore indexed by the
 `route_id` value, which is therefore saved in `route.route_id` but also as an index.
 
 **This indexing is not automatically kept up to date.**
@@ -75,7 +70,7 @@ gtfs.addRoute(route);
 The goal of this implementation was to avoid loading upfront all the tables. Therefore, they are loaded only when
 required. This makes the code faster to run (if some tables are not required at all).
 
-The drawback, is that any function could trigger the loading of a table. Since we do not want to turn every function into an async one, the loading of the tables is done synchronously. 
+The drawback, is that any function could trigger the loading of a table. Since we do not want to turn every function into an async one, the loading of the tables is done synchronously.
 
 ## Naming
 
@@ -89,8 +84,7 @@ but for the `shapes.txt`, since one item of the table is not a "shape" per-se, b
 
 ## Support and contact
 
-Please post any issues you find on [the repo of the project](https://github.com/TransitApp/gtfsNodeLib/issues). And 
-do not hesitate to contact [Transit App](https://github.com/TransitApp) or [Leo Frachet](https://github.com/LeoFrachet) directly if you have any questions.
-
+Please post any issues you find on [the repo of the project](https://github.com/TransitApp/gtfsNodeLib/issues). And
+do not hesitate to contact [Transit App](https://github.com/TransitApp) directly if you have any questions.
 
 
