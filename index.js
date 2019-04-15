@@ -11,7 +11,7 @@ if (process.notices === undefined) {
   process.notices = {
     addInfo: (title, content) => { infoLog(`[Info] ${title}:\n${content}`); },
     addWarning: (title, content) => { warningLog(`[Warning] ${title}:\n${content}`); },
-  }
+  };
 }
 
 module.exports = {
