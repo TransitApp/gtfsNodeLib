@@ -98,7 +98,7 @@ describe('Tests on GTFS', () => {
 
     // Fixes field using regexPatternObjectsByTableName
     const regexPatternObjectsByTableName = new Map([[
-      'stops', [{ regex: /,"Some ""other"" stop",/g, pattern: ',"Some stop",' }],
+      'stops', [{ regex: /,Some "other" stop,/g, pattern: ',Some stop,' }],
     ]]);
 
     const gtfsWithFix = new Gtfs(path, { regexPatternObjectsByTableName });
