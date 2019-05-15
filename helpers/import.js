@@ -60,9 +60,9 @@ Row: ${parsedFileContent.data[error.row].join(',')}`;
 
   const [keys, ...rows] = parsedFileContent.data;
 
-  checkThatKeysIncludeIndexKeys(keys, indexKeys, tableName);
-
   const trimmedKeys = keys.map(key => key.trim());
+  checkThatKeysIncludeIndexKeys(trimmedKeys, indexKeys, tableName);
+
   const GtfsRow = createGtfsClassForKeys(trimmedKeys);
 
   return processGtfsTableRows(gtfs, tableName, trimmedKeys, rows, indexKeys, GtfsRow);
