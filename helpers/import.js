@@ -128,7 +128,7 @@ function checkThatKeysIncludeIndexKeys(sortedKeys, indexKeys, tableName) {
     /* Field agency_id is optional in table agency.txt according to the specification. */
     throw new Error(
       `Keys of table ${tableName} do not contain the index key: ${indexKeys.indexKey}.\n`
-      + ` The values are: ${JSON.stringify(indexKeys.indexKey)}`
+      + ` The values are: ${sortedKeys}`
     );
   }
 
@@ -139,7 +139,7 @@ function checkThatKeysIncludeIndexKeys(sortedKeys, indexKeys, tableName) {
     throw new Error(
       `Keys of table ${tableName} do not contain the index keys: `
       + `${indexKeys.firstIndexKey} and ${indexKeys.secondIndexKey}.\n`
-      + ` The values are: ${JSON.stringify(indexKeys.indexKey)}`
+      + ` The values are: ${sortedKeys}`
     );
   }
 }
