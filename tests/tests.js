@@ -38,29 +38,44 @@ describe('Tests on GTFS', () => {
       fs.readFile(`${outputPath}routes.txt`, (readRoutesError, routesTxt) => {
         if (readRoutesError) { throw readRoutesError; }
 
+        // Test  deepness 1
         expect(String(routesTxt)).to.equal(
           'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
-          'route_text_color,route_sort_order,some_extra_route_field\n' +
-          'route_0,agency_0,R0,Route 0,Some new description,3,,,,,some_extra_route_value\n' +
-          'route_x,agency_0,RX,"""Route X""",Some new description,3,,,,,some_extra_route_value\n' +
+          'route_text_color,route_sort_order,some_extra_route_field\r\n' +
+          'route_0,agency_0,R0,Route 0,Some new description,3,,,,,some_extra_route_value\r\n' +
+          'route_x,agency_0,RX,"""Route X""",Some new description,3,,,,,some_extra_route_value\r\n' +
           'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,' +
-          'Some new description,3,,,,,some_extra_route_value\n' +
-          'route_y,agency_0,RY,"{""routeLongName"":""""}",Some new description,3,,,,,some_extra_route_value\n'
+          'Some new description,3,,,,,some_extra_route_value\r\n' +
+          'route_y,agency_0,RY,"{""routeLongName"":""""}",Some new description,3,,,,,some_extra_route_value'
         );
 
+        // Test singleton
         fs.readFile(`${outputPath}feed_info.txt`, (readFeedInfoError, feedInfoTxt) => {
           if (readFeedInfoError) { throw readFeedInfoError; }
 
           expect(String(feedInfoTxt)).to.equal(
             'feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version,' +
-            'some_extra_field\n' +
-            'Publisher Name,http://google.com,fr,20000101,21001231,42,some_extra_value\n'
+            'some_extra_field\r\n' +
+            'Publisher Name,http://google.com,fr,20000101,21001231,42,some_extra_value'
           );
 
-          fs.remove(outputPath, (removeError) => {
-            if (removeError) { throw removeError; }
+          // Test deepness 2
+          fs.readFile(`${outputPath}stop_times.txt`, (readStopTimesError, stopTimesTxt) => {
+            if (readStopTimesError) {
+              throw readStopTimesError;
+            }
 
-            done();
+            expect(String(stopTimesTxt)).to.equal(
+              'trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type,stop_headsign\n' +
+              'trip_0,10:00:00,10:00:00,stop_0,0,,,Stop Headsign 0\n' +
+              'trip_0,20:00:00,20:00:00,stop_1,1,,,Stop Headsign 1'
+            );
+
+            fs.remove(outputPath, (removeError) => {
+              if (removeError) { throw removeError; }
+
+              done();
+            });
           });
         });
       });
@@ -71,18 +86,24 @@ describe('Tests on GTFS', () => {
     const path = `${__dirname}/samples/2/`;
     const gtfsWithoutFix = new Gtfs(path);
 
-    expect(() => gtfsWithoutFix.getIndexedStops()).to.throw();
+    const stop0 = gtfsWithoutFix.getStopWithId('stop_0');
+    const stop1 = gtfsWithoutFix.getStopWithId('stop_1');
+    const stop2 = gtfsWithoutFix.getStopWithId('stop_2');
 
-    const gtfsWithoutFixWithoutThrow = new Gtfs(path, { throws: false });
+    // Fixes too many fields
+    expect(Object.keys(stop0).length).to.equal(Object.keys(stop1).length);
 
-    expect(() => gtfsWithoutFixWithoutThrow.getIndexedStops()).to.not.throw();
+    // Fixes too few field
+    expect(Object.keys(stop0).length).to.equal(Object.keys(stop2).length);
 
+    // Fixes field using regexPatternObjectsByTableName
     const regexPatternObjectsByTableName = new Map([[
-      'stops', [{regex: /,Some "other" stop,/g, pattern: ',"Some ""other"" stop",'}],
+      'stops', [{ regex: /,Some "other" stop,/g, pattern: ',Some stop,' }],
     ]]);
+
     const gtfsWithFix = new Gtfs(path, { regexPatternObjectsByTableName });
 
-    expect(gtfsWithFix.getStopWithId('stop_1').stop_desc).to.equal('Some "other" stop');
+    expect(gtfsWithFix.getStopWithId('stop_0').stop_desc).to.equal('Some stop');
 
     done();
   });
