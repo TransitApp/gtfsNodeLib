@@ -40,41 +40,50 @@ function copyUntouchedTable(inputPath, outputPath, tableName, callback) {
   const fullPathToInputFile = `${inputPath + tableName}.txt`;
   const fullPathToOutputFile = `${outputPath + tableName}.txt`;
 
-  fs.open(fullPathToInputFile, 'r', (err) => {
-    if (err && err.code === 'ENOENT') {
+  const readStream = fs.createReadStream(fullPathToInputFile);
+  const writeStream = fs.createWriteStream(fullPathToOutputFile);
+
+  readStream.on('error', (readError) => {
+    if (readError && readError.code === 'ENOENT') {
       warningLog(`[${getHHmmss()}] Table doesn't exist and won't be added: ${tableName}`);
       callback();
       return;
     }
-    if (err) {
-      errorLog(err);
-      callback();
-      return;
-    }
 
-    fs.copy(fullPathToInputFile, fullPathToOutputFile, (copyError) => {
-      if (copyError) {
-        errorLog(copyError);
+    if (readError) {
+      errorLog(readError);
+      callback();
+    }
+  })
+    .pipe(writeStream, (writeError) => {
+      if (writeError) {
+        errorLog(writeError);
+        callback();
+        return;
       }
 
       infoLog(`[${getHHmmss()}] Table has been copied: ${tableName}`);
+    })
+    .on('close', () => {
       callback();
     });
-  });
 }
 
 function exportTable(tableName, gtfs, outputPath, callback) {
   const csv = processGtfsTable(tableName, gtfs);
 
   const outputFullPath = `${outputPath + tableName}.txt`;
-  fs.writeFile(outputFullPath, csv, (error) => {
-    if (error) {
-      throw error;
-    }
+  const writeStream = fs.createWriteStream(outputFullPath);
 
-    infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+  try {
+    writeStream.write(csv, () => {
+      infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+      callback();
+    });
+  } catch (error) {
+    console.log(outputFullPath, csv);
     callback();
-  });
+  }
 }
 
 function getObjectValuesUsingKeyOrdering(object, keys) {
