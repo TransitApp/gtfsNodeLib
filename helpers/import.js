@@ -3,6 +3,7 @@
 /* eslint-disable no-underscore-dangle */
 
 const infoLog = require('debug')('gtfsNodeLib:i');
+const deasync = require('deasync');
 const fs = require('fs-extra');
 const Papa = require('papaparse');
 
@@ -17,8 +18,7 @@ function importTable(gtfs, tableName) {
   const fullPath = `${gtfs.getPath() + tableName}.txt`;
 
   if (fs.existsSync(fullPath)) {
-    const fileContent = fs.readFileSync(fullPath, 'utf8');
-    gtfs._tables.set(tableName, processGtfsTable(gtfs, fileContent, tableName, indexKeys));
+    gtfs._tables.set(tableName, processGtfsTable(gtfs, fullPath, tableName, indexKeys));
   } else {
     infoLog(`Empty table will be set for table ${tableName} (no input file at path ${gtfs._path}).`);
 
@@ -38,11 +38,27 @@ function importTable(gtfs, tableName) {
  * Private functions
  */
 
-function processGtfsTable(gtfs, fileContent, tableName, indexKeys) {
-  const parsedFileContent = Papa.parse(fileContent, {
-    delimiter: ',',
-    skipEmptyLines: true,
-  });
+function processGtfsTable(gtfs, fullPath, tableName, indexKeys) {
+  let parsedFileContent;
+  let finishedParsingFileContent = false;
+
+  const promisifedPapaParse = () => {
+    new Promise((resolve, reject) => {
+      Papa.parse(fs.createReadStream(fullPath, { encoding: 'utf8' }), {
+        complete: (results) => {
+          parsedFileContent = results;
+          finishedParsingFileContent = true;
+          resolve();
+        },
+        delimiter: ',',
+        error: reject,
+        skipEmptyLines: true,
+      });
+    });
+  };
+
+  promisifedPapaParse();
+  deasync.loopWhile(() => !finishedParsingFileContent);
 
   if (parsedFileContent.errors.length) {
     let errorMessage = `Invalid rows in table ${tableName}:\n`;
@@ -50,7 +66,7 @@ function processGtfsTable(gtfs, fileContent, tableName, indexKeys) {
     parsedFileContent.errors.forEach((error) => {
       errorMessage += `Line: ${error.row}
 Issue: ${error.message}
-Row: ${parsedFileContent.data[error.row].join(',')}`;
+Row: ${parsedFileContent.data[error.row].join(',')}\n`;
     });
 
     if (gtfs._shouldThrow === true) {

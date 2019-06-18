@@ -26,6 +26,7 @@
   "dependencies": {
     "acomb": "1.2.2",
     "async": "2.6.0",
+    "deasync": "^0.1.15",
     "debug": "3.1.0",
     "fs-extra": "5.0.0",
     "papaparse": "^4.6.3"
