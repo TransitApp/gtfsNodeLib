@@ -81,7 +81,7 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       callback();
     });
   } catch (error) {
-    console.log(outputFullPath, csv);
+    console.log(error);
     callback();
   }
 }
