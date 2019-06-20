@@ -2,6 +2,7 @@
 
 /* eslint-disable no-underscore-dangle */
 
+const acomb = require('acomb');
 const async = require('async');
 const infoLog = require('debug')('gtfsNodeLib:i');
 const warningLog = require('debug')('gtfsNodeLib:w');
@@ -64,16 +65,107 @@ function copyUntouchedTable(inputPath, outputPath, tableName, callback) {
 }
 
 function exportTable(tableName, gtfs, outputPath, callback) {
-  const csv = processGtfsTable(tableName, gtfs);
-
+  const actualKeys = gtfs.getActualKeysForTable(tableName);
+  const firstRow = `${actualKeys.join(',')}`;
   const outputFullPath = `${outputPath + tableName}.txt`;
-  fs.writeFile(outputFullPath, csv, (error) => {
-    if (error) {
-      throw error;
+
+  fs.writeFile(outputFullPath, firstRow, (writeError) => {
+    if (writeError) {
+      throw writeError;
     }
 
-    infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
-    callback();
+    const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
+
+    if (indexKeys.singleton) {
+      let item = gtfs.getIndexedTable(tableName);
+      if (!item) {
+        callback();
+        return;
+      }
+
+      if (gtfs._preExportItemFunction) {
+        item = gtfs._preExportItemFunction(item, tableName);
+      }
+
+      const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(item, actualKeys);
+      const row = Papa.unparse({
+        fields: actualKeys,
+        data: formattedGtfsRowValues,
+      },
+      {
+        header: false,
+      });
+
+      fs.appendFile(outputFullPath, `\r\n${row}`, callback);
+      return;
+    }
+
+    const deepness = gtfs._schema.deepnessByTableName[tableName];
+
+    let rows = [];
+
+    async.eachSeries(gtfs.getIndexedTable(tableName), acomb.ensureAsync(([key, object], subDone) => {
+      if (deepness === 0 || deepness === 1) {
+        if (gtfs._preExportItemFunction) {
+          object = gtfs._preExportItemFunction(object, tableName, key);
+        }
+
+        const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(object, actualKeys);
+        const row = Papa.unparse({
+          fields: actualKeys,
+          data: formattedGtfsRowValues,
+        },
+        {
+          header: false,
+        });
+
+        rows.push(`\r\n${row}`);
+      } else if (deepness === 2) {
+        object.forEach((subObject, subKey) => {
+          if (gtfs._preExportItemFunction) {
+            subObject = gtfs._preExportItemFunction(subObject, tableName, key, subKey);
+          }
+
+          const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(subObject, actualKeys);
+          const row = Papa.unparse({
+            fields: actualKeys,
+            data: formattedGtfsRowValues,
+          },
+          {
+            header: false,
+          });
+
+          rows.push(`\r\n${row}`);
+        });
+      }
+
+      if (rows.length < 100) {
+        subDone();
+        return;
+      }
+
+      fs.appendFile(outputFullPath, rows.join(''), (appendingError) => {
+        if (appendingError) {
+          throw appendingError;
+        }
+
+        rows = [];
+        subDone();
+      });
+    }), () => {
+      if (rows.length === 0) {
+        infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+        callback();
+        return;
+      }
+
+      fs.appendFile(outputFullPath, rows.join(''), (appendingError) => {
+        if (appendingError) { throw appendingError; }
+
+        infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+        callback();
+      });
+    });
   });
 }
 
@@ -93,59 +185,6 @@ function getObjectValuesUsingKeyOrdering(object, keys) {
     }
 
     return value;
-  });
-}
-
-function processGtfsTable(tableName, gtfs) {
-  let itemMap = gtfs.getIndexedTable(tableName);
-  if (!itemMap) {
-    return undefined;
-  }
-
-  const actualKeys = gtfs.getActualKeysForTable(tableName);
-  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
-  const deepness = gtfs._schema.deepnessByTableName[tableName];
-  const itemValues = [];
-
-  if (indexKeys.singleton) {
-    if (gtfs._preExportItemFunction) {
-      itemMap = gtfs._preExportItemFunction(itemMap, tableName);
-    }
-
-    const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(itemMap, actualKeys);
-    itemValues.push(formattedGtfsRowValues);
-
-    return Papa.unparse({
-      fields: actualKeys,
-      data: itemValues,
-    });
-  }
-
-  itemMap.forEach((gtfsRowObjectOrMap, key) => {
-    if (deepness === 0 || deepness === 1) {
-      if (gtfs._preExportItemFunction) {
-        gtfsRowObjectOrMap = gtfs._preExportItemFunction(gtfsRowObjectOrMap, tableName, key);
-      }
-
-      const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(gtfsRowObjectOrMap, actualKeys);
-      itemValues.push(formattedGtfsRowValues);
-    }
-
-    if (deepness === 2) {
-      gtfsRowObjectOrMap.forEach((gtfsRowObject, subKey) => {
-        if (gtfs._preExportItemFunction) {
-          gtfsRowObject = gtfs._preExportItemFunction(gtfsRowObject, tableName, key, subKey);
-        }
-
-        const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(gtfsRowObject, actualKeys);
-        itemValues.push(formattedGtfsRowValues);
-      });
-    }
-  });
-
-  return Papa.unparse({
-    fields: actualKeys,
-    data: itemValues,
   });
 }
 
