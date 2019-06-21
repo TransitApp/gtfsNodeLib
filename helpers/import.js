@@ -61,7 +61,7 @@ function getKeysAndRowsSlices(buffer, regexPatternObjects, tableName) {
    iteration.
     */
   const decoder = new StringDecoder('utf8');
-  const rowsSliceRegex = /(.*[\r\n]+)((.*[\r\n]*)*)/;
+  const rowsSliceRegex = /(.*([\r\n])*)((.*[\r\n]*)*)/;
 
   while (position < buffer.length) {
     rowsSlice = decoder.write(buffer.slice(position, Math.min(buffer.length, position + batchLength)));
@@ -80,13 +80,13 @@ function getKeysAndRowsSlices(buffer, regexPatternObjects, tableName) {
     const rowsSliceIndex = position / batchLength;
 
     if (!keys) {
-      const [, firstRowSlice, remainingRowsSlice] = rowsSlice.match(rowsSliceRegex);
+      const [, firstRowSlice,, remainingRowsSlice] = rowsSlice.match(rowsSliceRegex);
       keys = firstRowSlice;
       rowsSlice = remainingRowsSlice;
     }
 
     if (merge) {
-      const [, firstRowSlice, remainingRowsSlice] = rowsSlice.match(rowsSliceRegex);
+      const [, firstRowSlice,, remainingRowsSlice] = rowsSlice.match(rowsSliceRegex);
       rowsSlices[rowsSliceIndex - 1] += firstRowSlice;
       rowsSlice = remainingRowsSlice;
     }
