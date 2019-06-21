@@ -106,7 +106,7 @@ function getKeysAndRowsSlices(buffer, regexPatternObjects, tableName) {
 function processGtfsTable(gtfs, keys, rowsSlices, tableName, indexKeys) {
   let table = (indexKeys.setOfItems) ? new Set() : new Map();
 
-  if (rowsSlices === undefined || rowsSlices === null || rowsSlices.length === 0) {
+  if (!rowsSlices || rowsSlices.length === 0) {
     return table;
   }
 
