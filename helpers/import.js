@@ -138,9 +138,8 @@ Row: ${parsedRow.data[error.row].join(',')}`;
       });
     }
 
-    const [, ...rows] = parsedRow.data; // we don't need the header row, it's already stored in parsedKeys/trimmedKeys
-
-    rows.forEach((row) => {
+    for (let i = 1; i < parsedRow.data.length; i += 1) { // we only want to add to the table the remaining rows
+      const row = parsedRow.data[i];
       const trimmedRow = row.map(value => value.trim());
       if (trimmedRow !== null) {
         const item = new GtfsRow(trimmedRow);
@@ -159,7 +158,7 @@ Row: ${parsedRow.data[error.row].join(',')}`;
           table.add(item);
         }
       }
-    });
+    }
   });
 
   if (errorMessage && gtfs._shouldThrow) {
