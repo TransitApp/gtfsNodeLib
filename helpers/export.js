@@ -103,6 +103,18 @@ function exportTable(tableName, gtfs, outputPath, callback) {
 
     let rows = [];
 
+    /*
+      About why the async wrapper is used inside the async.eachSeries:
+      If the function async.eachSeries runs without doing anything, just calling the callback (which
+      happens when there are a lot of empty objects), it crashes. It is a known bug of async.
+      They don't fix it due to performance reasons (see Common Pitfalls - https://caolan.github.io/async/v3/)
+      To deal with this, we simply wrap the possible asynchronous function with the keyword async.
+      The ES2017 async functions are returned as-is.
+      This is useful for preventing stack overflows (RangeError: Maximum call stack size exceeded),
+      and generally keeping Zalgo contained. Hence, Async Functions are immune to Zalgo's corrupting influences,
+      as they always resolve on a later tick.
+      More info on Zalgo (https://blog.izs.me/2013/08/designing-apis-for-asynchrony)
+    */
     async.eachSeries(gtfs.getIndexedTable(tableName), async ([key, object]) => {
       if (deepness === 0 || deepness === 1) {
         if (gtfs._preExportItemFunction) {
