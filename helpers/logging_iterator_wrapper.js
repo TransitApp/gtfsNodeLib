@@ -21,7 +21,7 @@ module.exports = (prefix, valueByKey, iteratee) => {
 
     numberOfKeysDone += 1;
 
-    if (Date.now() - lastLogAt > interval && process.env.TEST === undefined) {
+    if (!process.env.TEST && Date.now() - lastLogAt > interval) {
       const numberOfTotalKeys = valueByKey instanceof Array ? valueByKey.length : valueByKey.size;
       const percentageDone = (numberOfKeysDone / numberOfTotalKeys) * 100;
 
