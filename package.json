@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/TransitApp/gtfsNodeLib#readme",
   "dependencies": {
-    "acomb": "1.2.2",
     "async": "2.6.0",
     "debug": "3.1.0",
     "fs-extra": "5.0.0",

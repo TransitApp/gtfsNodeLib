@@ -2,7 +2,6 @@
 
 /* eslint-disable no-underscore-dangle */
 
-const acomb = require('acomb');
 const async = require('async');
 const infoLog = require('debug')('gtfsNodeLib:i');
 const warningLog = require('debug')('gtfsNodeLib:w');
@@ -104,7 +103,7 @@ function exportTable(tableName, gtfs, outputPath, callback) {
 
     let rows = [];
 
-    async.eachSeries(gtfs.getIndexedTable(tableName), acomb.ensureAsync(([key, object], subDone) => {
+    async.eachSeries(gtfs.getIndexedTable(tableName), async ([key, object]) => {
       if (deepness === 0 || deepness === 1) {
         if (gtfs._preExportItemFunction) {
           object = gtfs._preExportItemFunction(object, tableName, key);
@@ -140,19 +139,16 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       }
 
       if (rows.length < 100) {
-        subDone();
         return;
       }
 
-      fs.appendFile(outputFullPath, rows.join(''), (appendingError) => {
-        if (appendingError) {
-          throw appendingError;
-        }
+      await fs.appendFile(outputFullPath, rows.join(''));
+      rows = [];
+    }, (asyncEachSeriesError) => {
+      if (asyncEachSeriesError) {
+        throw asyncEachSeriesError;
+      }
 
-        rows = [];
-        subDone();
-      });
-    }), () => {
       if (rows.length === 0) {
         infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
         callback();
