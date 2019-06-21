@@ -5,6 +5,9 @@
 const infoLog = require('debug')('gtfsNodeLib:i');
 const fs = require('fs-extra');
 const Papa = require('papaparse');
+const { StringDecoder } = require('string_decoder');
+
+const eachWithLog = require('./logging_iterator_wrapper');
 
 /**
  * Import a table in the GTFS.
@@ -17,8 +20,13 @@ function importTable(gtfs, tableName) {
   const fullPath = `${gtfs.getPath() + tableName}.txt`;
 
   if (fs.existsSync(fullPath)) {
-    const fileContent = fs.readFileSync(fullPath, 'utf8');
-    gtfs._tables.set(tableName, processGtfsTable(gtfs, fileContent, tableName, indexKeys));
+    const fileContent = fs.readFileSync(fullPath);
+    const { keys, rowsSlices } = getKeysAndRowsSlices(
+      fileContent,
+      gtfs._regexPatternObjectsByTableName.get(tableName),
+      tableName
+    );
+    gtfs._tables.set(tableName, processGtfsTable(gtfs, keys, rowsSlices, tableName, indexKeys));
   } else {
     infoLog(`Empty table will be set for table ${tableName} (no input file at path ${gtfs._path}).`);
 
@@ -38,87 +46,126 @@ function importTable(gtfs, tableName) {
  * Private functions
  */
 
-function processGtfsTable(gtfs, fileContent, tableName, indexKeys) {
-  const parsedFileContent = Papa.parse(fileContent, {
-    delimiter: ',',
-    skipEmptyLines: true,
-  });
+function getKeysAndRowsSlices(buffer, regexPatternObjects, tableName) {
+  let keys;
+  const rowsSlices = [];
+  let rowsSlice;
+  let position = 0;
+  const batchLength = 5000000; // 5mb
+  let merge;
+  /*
+   Use string decoder to properly decode utf8 characters. Characters not in the basic ASCII take more
+   than one byte.
+   If the end of the batch cuts one of those characters, then we will yield weird characters.
+   decoder will accumulate any "lost" utf8 character at the end of the batch and accumulate it for the next
+   iteration.
+    */
+  const decoder = new StringDecoder('utf8');
+  const rowsSliceRegex = /(.*[\r\n]+)((.*[\r\n]*)*)/;
 
-  if (parsedFileContent.errors.length) {
-    let errorMessage = `Invalid rows in table ${tableName}:\n`;
+  while (position < buffer.length) {
+    rowsSlice = decoder.write(buffer.slice(position, Math.min(buffer.length, position + batchLength)));
 
-    parsedFileContent.errors.forEach((error) => {
-      errorMessage += `Line: ${error.row}
-Issue: ${error.message}
-Row: ${parsedFileContent.data[error.row].join(',')}`;
-    });
+    if (regexPatternObjects) {
+      regexPatternObjects.forEach(({ regex, pattern }) => {
+        const modifiedRowsSlice = rowsSlice.replace(regex, pattern || '');
 
-    if (gtfs._shouldThrow === true) {
-      throw new Error(errorMessage);
+        if (modifiedRowsSlice !== rowsSlice) {
+          process.notices.addInfo(__filename, `Applying regex replace to table: "${tableName}". regex: "${regex}".`);
+          rowsSlice = modifiedRowsSlice;
+        }
+      });
     }
+
+    const rowsSliceIndex = position / batchLength;
+
+    if (!keys) {
+      const [, firstRowSlice, remainingRowsSlice] = rowsSlice.match(rowsSliceRegex);
+      keys = firstRowSlice;
+      rowsSlice = remainingRowsSlice;
+    }
+
+    if (merge) {
+      const [, firstRowSlice, remainingRowsSlice] = rowsSlice.match(rowsSliceRegex);
+      rowsSlices[rowsSliceIndex - 1] += firstRowSlice;
+      rowsSlice = remainingRowsSlice;
+    }
+
+    rowsSlices[rowsSliceIndex] = rowsSlice;
+
+    merge = rowsSlices[rowsSlice.length] !== '\n';
+    position += batchLength;
   }
 
-  const [keys, ...rows] = parsedFileContent.data;
+  return {
+    keys,
+    rowsSlices,
+  };
+}
 
-  const trimmedKeys = keys.map(key => key.trim());
+function processGtfsTable(gtfs, keys, rowsSlices, tableName, indexKeys) {
+  let table = (indexKeys.setOfItems) ? new Set() : new Map();
+
+  if (!rowsSlices || rowsSlices.length === 0) {
+    return table;
+  }
+
+  const parsedKeys = Papa.parse(keys, { delimiter: ',', skipEmptyLines: true });
+  const trimmedKeys = parsedKeys.data[0].map(key => key.trim());
   checkThatKeysIncludeIndexKeys(trimmedKeys, indexKeys, tableName);
 
   const GtfsRow = createGtfsClassForKeys(trimmedKeys);
+  let errorMessage;
 
-  return processGtfsTableRows(gtfs, tableName, trimmedKeys, rows, indexKeys, GtfsRow);
-}
-
-function processGtfsTableRows(gtfs, tableName, keys, rows, indexKeys, GtfsRow) {
-  let table = (indexKeys.setOfItems) ? new Set() : new Map();
-
-  const regexPatternObjects = gtfs._regexPatternObjectsByTableName.get(tableName);
-
-  rows.forEach((row) => {
-    if (regexPatternObjects) {
-      row = applyRegexPatternObjectsByTableName(regexPatternObjects, keys, row, tableName);
+  eachWithLog(`Importation:${tableName}`, rowsSlices, (rowsSlice) => {
+    if (!rowsSlice || !rowsSlice.trim) {
+      return;
     }
 
-    const trimmedRow = row.map(value => value.trim());
-    const gtfsRow = new GtfsRow(trimmedRow);
+    rowsSlice = rowsSlice.trim();
 
-    if (indexKeys.indexKey) {
-      table.set(gtfsRow[indexKeys.indexKey], gtfsRow);
-    } else if (indexKeys.firstIndexKey && indexKeys.secondIndexKey) {
-      if (table.has(gtfsRow[indexKeys.firstIndexKey]) === false) {
-        table.set(gtfsRow[indexKeys.firstIndexKey], new Map());
+    const parsedRow = Papa.parse(`${keys}${rowsSlice}`, { delimiter: ',', skipEmptyLines: true });
+
+    if (parsedRow.errors.length) {
+      if (!errorMessage) {
+        errorMessage = `Invalid rows in table ${tableName}:\n`;
       }
 
-      table.get(gtfsRow[indexKeys.firstIndexKey]).set(gtfsRow[indexKeys.secondIndexKey], gtfsRow);
-    } else if (indexKeys.singleton) {
-      table = gtfsRow;
-    } else if (indexKeys.setOfItems) {
-      table.add(gtfsRow);
+      parsedRow.errors.forEach((error) => {
+        errorMessage += `Line: ${error.row}
+Issue: ${error.message}
+Row: ${parsedRow.data[error.row].join(',')}`;
+      });
+    }
+
+    for (let i = 1; i < parsedRow.data.length; i += 1) { // we only want to add to the table the remaining rows
+      const row = parsedRow.data[i];
+      const trimmedRow = row.map(value => value.trim());
+      if (trimmedRow !== null) {
+        const item = new GtfsRow(trimmedRow);
+
+        if (indexKeys.indexKey) {
+          table.set(item[indexKeys.indexKey], item);
+        } else if (indexKeys.firstIndexKey && indexKeys.secondIndexKey) {
+          if (table.has(item[indexKeys.firstIndexKey]) === false) {
+            table.set(item[indexKeys.firstIndexKey], new Map());
+          }
+
+          table.get(item[indexKeys.firstIndexKey]).set(item[indexKeys.secondIndexKey], item);
+        } else if (indexKeys.singleton) {
+          table = item;
+        } else if (indexKeys.setOfItems) {
+          table.add(item);
+        }
+      }
     }
   });
+
+  if (errorMessage && gtfs._shouldThrow) {
+    throw new Error(errorMessage);
+  }
 
   return table;
-}
-
-function applyRegexPatternObjectsByTableName(regexPatternObjects, keys, row, tableName) {
-  const rowStringified = String(row);
-  let modifiedRowStringified = rowStringified;
-
-  regexPatternObjects.forEach(({ regex, pattern }) => {
-    modifiedRowStringified = rowStringified.replace(regex, pattern || '');
-
-    if (modifiedRowStringified !== rowStringified) {
-      process.notices.addInfo(
-        'Applying Changes on Raw GTFS',
-        `Applying regex replace to table: "${tableName}". regex: "${regex}".`
-      );
-    }
-  });
-
-  const parsedModifiedRow = Papa.parse(`${keys}\n${modifiedRowStringified}`, {
-    delimiter: ',',
-  });
-
-  return parsedModifiedRow.data[1];
 }
 
 function checkThatKeysIncludeIndexKeys(sortedKeys, indexKeys, tableName) {

@@ -82,6 +82,28 @@ describe('Tests on GTFS', () => {
     });
   });
 
+  // it('Tests on importing/exporting very large file', (done) => {
+  // You'll need to download a large CSV and place it within the samples/veryLargeFile folder.
+  // A good one is STM stop_times.txt
+  //   const path = `${__dirname}/samples/veryLargeFile`;
+  //   const gtfs = new Gtfs(path);
+  //
+  //   const stopTime = gtfs.getStopTimeWithTripIdAndStopSequence('197160641', '1');
+  //   expect(stopTime.stop_id).to.equal('51095');
+  //
+  //   const outputPath = `${__dirname}/temp_4865ce67d01f96a489fbd0e71adef800b/`;
+  //
+  //   gtfs.exportAtPath(outputPath, (exportError) => {
+  //     if (exportError) { throw exportError; }
+  //
+  //     fs.remove(outputPath, (removeError) => {
+  //       if (removeError) { throw removeError; }
+  //
+  //       done();
+  //     });
+  //   });
+  // });
+
   it('Tests on the regex/pattern applied to fix a bad CSV', (done) => {
     const path = `${__dirname}/samples/2/`;
     const gtfsWithoutFix = new Gtfs(path);

@@ -64,16 +64,116 @@ function copyUntouchedTable(inputPath, outputPath, tableName, callback) {
 }
 
 function exportTable(tableName, gtfs, outputPath, callback) {
-  const csv = processGtfsTable(tableName, gtfs);
-
+  const actualKeys = gtfs.getActualKeysForTable(tableName);
+  const firstRow = `${actualKeys.join(',')}`;
   const outputFullPath = `${outputPath + tableName}.txt`;
-  fs.writeFile(outputFullPath, csv, (error) => {
-    if (error) {
-      throw error;
+
+  fs.writeFile(outputFullPath, firstRow, (writeError) => {
+    if (writeError) {
+      throw writeError;
     }
 
-    infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
-    callback();
+    const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
+
+    if (indexKeys.singleton) {
+      let item = gtfs.getIndexedTable(tableName);
+      if (!item) {
+        callback();
+        return;
+      }
+
+      if (gtfs._preExportItemFunction) {
+        item = gtfs._preExportItemFunction(item, tableName);
+      }
+
+      const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(item, actualKeys);
+      const row = Papa.unparse({
+        fields: actualKeys,
+        data: formattedGtfsRowValues,
+      },
+      {
+        header: false,
+      });
+
+      fs.appendFile(outputFullPath, `\r\n${row}`, callback);
+      return;
+    }
+
+    const deepness = gtfs._schema.deepnessByTableName[tableName];
+
+    let rows = [];
+
+    /*
+      About why the async wrapper is used inside the async.eachSeries:
+      If the function async.eachSeries runs without doing anything, just calling the callback (which
+      happens when there are a lot of empty objects), it crashes. It is a known bug of async.
+      They don't fix it due to performance reasons (see Common Pitfalls - https://caolan.github.io/async/v3/)
+      To deal with this, we simply wrap the possible asynchronous function with the keyword async.
+      The ES2017 async functions are returned as-is.
+      This is useful for preventing stack overflows (RangeError: Maximum call stack size exceeded),
+      and generally keeping Zalgo contained. Hence, Async Functions are immune to Zalgo's corrupting influences,
+      as they always resolve on a later tick.
+      More info on Zalgo (https://blog.izs.me/2013/08/designing-apis-for-asynchrony)
+    */
+    async.eachSeries(gtfs.getIndexedTable(tableName), async ([key, object]) => {
+      if (deepness === 0 || deepness === 1) {
+        if (gtfs._preExportItemFunction) {
+          object = gtfs._preExportItemFunction(object, tableName, key);
+        }
+
+        const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(object, actualKeys);
+        const row = Papa.unparse({
+          fields: actualKeys,
+          data: formattedGtfsRowValues,
+        },
+        {
+          header: false,
+        });
+
+        rows.push(`\r\n${row}`);
+      } else if (deepness === 2) {
+        object.forEach((subObject, subKey) => {
+          if (gtfs._preExportItemFunction) {
+            subObject = gtfs._preExportItemFunction(subObject, tableName, key, subKey);
+          }
+
+          const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(subObject, actualKeys);
+          const row = Papa.unparse({
+            fields: actualKeys,
+            data: formattedGtfsRowValues,
+          },
+          {
+            header: false,
+          });
+
+          rows.push(`\r\n${row}`);
+        });
+      }
+
+      if (rows.length < 100) {
+        return;
+      }
+
+      await fs.appendFile(outputFullPath, rows.join(''));
+      rows = [];
+    }, (asyncEachSeriesError) => {
+      if (asyncEachSeriesError) {
+        throw asyncEachSeriesError;
+      }
+
+      if (rows.length === 0) {
+        infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+        callback();
+        return;
+      }
+
+      fs.appendFile(outputFullPath, rows.join(''), (appendingError) => {
+        if (appendingError) { throw appendingError; }
+
+        infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
+        callback();
+      });
+    });
   });
 }
 
@@ -93,59 +193,6 @@ function getObjectValuesUsingKeyOrdering(object, keys) {
     }
 
     return value;
-  });
-}
-
-function processGtfsTable(tableName, gtfs) {
-  let itemMap = gtfs.getIndexedTable(tableName);
-  if (!itemMap) {
-    return undefined;
-  }
-
-  const actualKeys = gtfs.getActualKeysForTable(tableName);
-  const indexKeys = gtfs._schema.indexKeysByTableName[tableName];
-  const deepness = gtfs._schema.deepnessByTableName[tableName];
-  const itemValues = [];
-
-  if (indexKeys.singleton) {
-    if (gtfs._preExportItemFunction) {
-      itemMap = gtfs._preExportItemFunction(itemMap, tableName);
-    }
-
-    const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(itemMap, actualKeys);
-    itemValues.push(formattedGtfsRowValues);
-
-    return Papa.unparse({
-      fields: actualKeys,
-      data: itemValues,
-    });
-  }
-
-  itemMap.forEach((gtfsRowObjectOrMap, key) => {
-    if (deepness === 0 || deepness === 1) {
-      if (gtfs._preExportItemFunction) {
-        gtfsRowObjectOrMap = gtfs._preExportItemFunction(gtfsRowObjectOrMap, tableName, key);
-      }
-
-      const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(gtfsRowObjectOrMap, actualKeys);
-      itemValues.push(formattedGtfsRowValues);
-    }
-
-    if (deepness === 2) {
-      gtfsRowObjectOrMap.forEach((gtfsRowObject, subKey) => {
-        if (gtfs._preExportItemFunction) {
-          gtfsRowObject = gtfs._preExportItemFunction(gtfsRowObject, tableName, key, subKey);
-        }
-
-        const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(gtfsRowObject, actualKeys);
-        itemValues.push(formattedGtfsRowValues);
-      });
-    }
-  });
-
-  return Papa.unparse({
-    fields: actualKeys,
-    data: itemValues,
   });
 }
 
