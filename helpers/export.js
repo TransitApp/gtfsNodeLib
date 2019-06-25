@@ -115,13 +115,14 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       as they always resolve on a later tick.
       More info on Zalgo (https://blog.izs.me/2013/08/designing-apis-for-asynchrony)
     */
-    async.eachSeries(gtfs.getIndexedTable(tableName), async ([key, object]) => {
-      if (deepness === 0 || deepness === 1) {
+    async.eachSeries(gtfs.getIndexedTable(tableName), async (iteratee) => {
+      if (indexKeys.setOfItems) {
+        let item = iteratee;
         if (gtfs._preExportItemFunction) {
-          object = gtfs._preExportItemFunction(object, tableName, key);
+          item = gtfs._preExportItemFunction(item, tableName);
         }
 
-        const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(object, actualKeys);
+        const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(item, actualKeys);
         const row = Papa.unparse({
           fields: actualKeys,
           data: formattedGtfsRowValues,
@@ -131,13 +132,15 @@ function exportTable(tableName, gtfs, outputPath, callback) {
         });
 
         rows.push(`\r\n${row}`);
-      } else if (deepness === 2) {
-        object.forEach((subObject, subKey) => {
+      } else {
+        let [key, object] = iteratee;
+
+        if (deepness === 0 || deepness === 1) {
           if (gtfs._preExportItemFunction) {
-            subObject = gtfs._preExportItemFunction(subObject, tableName, key, subKey);
+            object = gtfs._preExportItemFunction(object, tableName, key);
           }
 
-          const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(subObject, actualKeys);
+          const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(object, actualKeys);
           const row = Papa.unparse({
             fields: actualKeys,
             data: formattedGtfsRowValues,
@@ -147,7 +150,24 @@ function exportTable(tableName, gtfs, outputPath, callback) {
           });
 
           rows.push(`\r\n${row}`);
-        });
+        } else if (deepness === 2) {
+          object.forEach((subObject, subKey) => {
+            if (gtfs._preExportItemFunction) {
+              subObject = gtfs._preExportItemFunction(subObject, tableName, key, subKey);
+            }
+
+            const formattedGtfsRowValues = getObjectValuesUsingKeyOrdering(subObject, actualKeys);
+            const row = Papa.unparse({
+              fields: actualKeys,
+              data: formattedGtfsRowValues,
+            },
+            {
+              header: false,
+            });
+
+            rows.push(`\r\n${row}`);
+          });
+        }
       }
 
       if (rows.length < 100) {
@@ -160,7 +180,6 @@ function exportTable(tableName, gtfs, outputPath, callback) {
       if (asyncEachSeriesError) {
         throw asyncEachSeriesError;
       }
-
       if (rows.length === 0) {
         infoLog(`[${getHHmmss()}] Table has been exported: ${tableName}`);
         callback();
