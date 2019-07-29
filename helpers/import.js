@@ -111,7 +111,7 @@ function processGtfsTable(gtfs, keys, rowsSlices, tableName, indexKeys) {
   }
 
   const parsedKeys = Papa.parse(keys, { delimiter: ',', skipEmptyLines: true });
-  const trimmedKeys = parsedKeys.data[0].map(key => key.trim());
+  const trimmedKeys = parsedKeys.data[0].map(key => key.trim().replace(/"/g, ''));
   checkThatKeysIncludeIndexKeys(trimmedKeys, indexKeys, tableName);
 
   const GtfsRow = createGtfsClassForKeys(trimmedKeys);
