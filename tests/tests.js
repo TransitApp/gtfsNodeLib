@@ -41,12 +41,12 @@ describe('Tests on GTFS', () => {
         // Test  deepness 1
         expect(String(routesTxt)).to.equal(
           'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
-          'route_text_color,route_sort_order,some_extra_route_field\r\n' +
-          'route_0,agency_0,R0,Route 0,Some new description,3,,,,,some_extra_route_value\r\n' +
-          'route_x,agency_0,RX,"""Route X""",Some new description,3,,,,,some_extra_route_value\r\n' +
+          'route_text_color,route_sort_order,tts_route_short_name,tts_route_long_name,some_extra_route_field\r\n' +
+          'route_0,agency_0,R0,Route 0,Some new description,3,,,,,r0,rooouuuteee 0,some_extra_route_value\r\n' +
+          'route_x,agency_0,RX,"""Route X""",Some new description,3,,,,,,,some_extra_route_value\r\n' +
           'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,' +
-          'Some new description,3,,,,,some_extra_route_value\r\n' +
-          'route_y,agency_0,RY,"{""routeLongName"":""""}",Some new description,3,,,,,some_extra_route_value'
+          'Some new description,3,,,,,旱獺屬,,some_extra_route_value\r\n' +
+          'route_y,agency_0,RY,"{""routeLongName"":""""}",Some new description,3,,,,,,,some_extra_route_value'
         );
 
         // Test singleton

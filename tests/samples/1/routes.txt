@@ -1,5 +1,5 @@
-agency_id,route_id,route_short_name,route_long_name,route_type
-agency_0,route_0,R0,Route 0,3
-agency_0,route_x,RX,"""Route X""",3
-agency_0,route_utf8,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα'´`,3
-agency_0, route_y, RY,"{""routeLongName"":""""}",3
+agency_id,route_id,route_short_name,route_long_name,route_type,tts_route_short_name,tts_route_long_name
+agency_0,route_0,R0,Route 0,3,r0,rooouuuteee 0
+agency_0,route_x,RX,"""Route X""",3,,
+agency_0,route_utf8,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα'´`,3,旱獺屬,
+agency_0, route_y, RY,"{""routeLongName"":""""}",3,,
