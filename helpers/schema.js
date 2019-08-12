@@ -26,6 +26,7 @@ const keysByTableName = {
     'parent_station',
     'stop_timezone',
     'wheelchair_boarding',
+    'tts_stop_name'
   ],
   routes: [
     'route_id',
@@ -38,6 +39,8 @@ const keysByTableName = {
     'route_color',
     'route_text_color',
     'route_sort_order',
+    'tts_route_short_name',
+    'tts_route_long_name'
   ],
   trips: [
     'route_id',
