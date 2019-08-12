@@ -53,11 +53,11 @@ describe('Tests on GTFS constructor options', () => {
 
         expect(String(routesTxt)).to.equal(
           'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
-          'route_text_color,route_sort_order,temp\r\n' +
-          'route_0,agency_0,R0,Route 0,,3,,,,,some value\r\n' +
-          'route_x,agency_0,RX,"""Route X""",,3,,,,,some value\r\n' +
-          'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,,3,,,,,some value\r\n' +
-          'route_y,agency_0,RY,"{""routeLongName"":""""}",,3,,,,,some value'
+          'route_text_color,route_sort_order,tts_route_short_name,tts_route_long_name,temp\r\n' +
+          'route_0,agency_0,R0,Route 0,,3,,,,,r0,rooouuuteee 0,some value\r\n' +
+          'route_x,agency_0,RX,"""Route X""",,3,,,,,,,some value\r\n' +
+          'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,,3,,,,,旱獺屬,,some value\r\n' +
+          'route_y,agency_0,RY,"{""routeLongName"":""""}",,3,,,,,,,some value'
         );
 
         fs.remove(outputPath, (removeError) => {
@@ -92,11 +92,11 @@ describe('Tests on GTFS constructor options', () => {
 
         expect(String(routesTxt)).to.equal(
           'route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,' +
-          'route_text_color,route_sort_order,temp\r\n' +
-          'route_0,agency_0,R0,Route 0,,3,,,,,"{""key"":""value""}"\r\n' +
-          'route_x,agency_0,RX,"""Route X""",,3,,,,,"{""key"":""value""}"\r\n' +
-          'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,,3,,,,,"{""key"":""value""}"\r\n' +
-          'route_y,agency_0,RY,"{""routeLongName"":""""}",,3,,,,,"{""key"":""value""}"'
+          'route_text_color,route_sort_order,tts_route_short_name,tts_route_long_name,temp\r\n' +
+          'route_0,agency_0,R0,Route 0,,3,,,,,r0,rooouuuteee 0,"{""key"":""value""}"\r\n' +
+          'route_x,agency_0,RX,"""Route X""",,3,,,,,,,"{""key"":""value""}"\r\n' +
+          'route_utf8,agency_0,RÛTF8,route_😎êωn → ∞⠁⠧⠑ ⠼éöÿΚαλημέρα\'´`,,3,,,,,旱獺屬,,"{""key"":""value""}"\r\n' +
+          'route_y,agency_0,RY,"{""routeLongName"":""""}",,3,,,,,,,"{""key"":""value""}"'
         );
 
         fs.remove(outputPath, (removeError) => {
