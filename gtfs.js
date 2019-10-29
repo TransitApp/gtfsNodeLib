@@ -1620,6 +1620,74 @@ class Gtfs {
    */
   setIndexedTransfers(indexedTransfers) { setTable(this, 'transfers', indexedTransfers); }
 
+  /* pathways.txt */
+
+  /**
+   * Adds a pathway in the GTFS.
+   *
+   * @param {Object} pathway Pathway to add in the GTFS.
+   */
+  addPathway(pathway) { addItems(this, 'pathways', [pathway]); }
+
+  /**
+   * Adds a list of pathways in the GTFS.
+   *
+   * @param {Array.<Object>} pathways Array of transfers to add in the GTFS.
+   */
+  addPathways(pathways) { addItems(this, 'pathways', pathways); }
+
+  /**
+   * Apply a function to each pathway in the GTFS.
+   *
+   * @param {function} iterator Function which will be applied on every pathway.
+   */
+  forEachPathway(iterator) { forEachItem(this, 'pathways', iterator); }
+
+  /**
+   * Get the indexed pathways of the GTFS. The indexation is defined in the schema (see schema.js).
+   *
+   * @return {Map.<string, Map.<string, Object>>} Indexed transfers.
+   */
+  getIndexedPathways() { return getIndexedTable(this, 'pathways'); }
+
+  /**
+   * Get a pathway using its indexes: the fromStopId and the toStopId.
+   *
+   * @param  {string} pathwayId   First index of the pathway
+   * @return {Object}            Pathway object
+   */
+  getPathwayWithPathwayId(pathwayId) {
+    return getters.getItemWithIndexes(pathwayId, 'pathways', this);
+  }
+
+  /**
+   * Removes a pathway of the GTFS.
+   *
+   * @param {Object} pathway Pathway to remove of the GTFS.
+   */
+  removePathway(pathway) { removeItems(this, 'pathways', [pathway]); }
+
+  /**
+   * Removes a list of pathways of the GTFS.
+   *
+   * @param {Array.<Object>} pathways Pathways to remove of the GTFS.
+   */
+  removePathways(pathways) { removeItems(this, 'pathways', pathways); }
+
+  /**
+   * Reset the map of indexed pathways.
+   */
+  resetPathways() { resetTable(this, 'pathways'); }
+
+  /**
+   * Set the map of indexed transfers.
+   *
+   * WARNING: The Map should be indexed as defined in schema.js
+   *
+   * @param {Map.<string, Map.<string, Object>>} indexedPathways Map of pathways properly indexed (see schema.js).
+   */
+  setIndexedPathways(indexedPathways) { setTable(this, 'pathways', indexedPathways); }
+
 
   /* feed_info.txt */
 
