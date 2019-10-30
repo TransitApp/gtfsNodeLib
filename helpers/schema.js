@@ -156,7 +156,7 @@ const indexKeysByTableName = {
   trips: { indexKey: 'trip_id' },
   shapes: { firstIndexKey: 'shape_id', secondIndexKey: 'shape_pt_sequence' },
   transfers: { firstIndexKey: 'from_stop_id', secondIndexKey: 'to_stop_id' },
-  pathways: { firstIndexKey: 'pathway_id'},
+  pathways: { indexKey: 'pathway_id'},
   feed_info: { singleton: true },
 };
 
