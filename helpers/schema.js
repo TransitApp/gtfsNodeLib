@@ -26,7 +26,7 @@ const keysByTableName = {
     'parent_station',
     'stop_timezone',
     'wheelchair_boarding',
-    'tts_stop_name'
+    'tts_stop_name',
   ],
   routes: [
     'route_id',
@@ -40,7 +40,7 @@ const keysByTableName = {
     'route_text_color',
     'route_sort_order',
     'tts_route_short_name',
-    'tts_route_long_name'
+    'tts_route_long_name',
   ],
   trips: [
     'route_id',
@@ -120,18 +120,18 @@ const keysByTableName = {
     'min_transfer_time',
   ],
   pathways: [
-      'pathway_id',
-      'from_stop_id',
-      'to_stop_id',
-      'pathway_mode',
-      'is_bidirectional',
-      'length',
-      'traversal_time',
-      'stair_count',
-      'max_slope',
-      'min_width',
-      'signposted_as',
-      'reversed_signposted_as',
+    'pathway_id',
+    'from_stop_id',
+    'to_stop_id',
+    'pathway_mode',
+    'is_bidirectional',
+    'length',
+    'traversal_time',
+    'stair_count',
+    'max_slope',
+    'min_width',
+    'signposted_as',
+    'reversed_signposted_as',
   ],
   feed_info: [
     'feed_publisher_name',
@@ -156,7 +156,7 @@ const indexKeysByTableName = {
   trips: { indexKey: 'trip_id' },
   shapes: { firstIndexKey: 'shape_id', secondIndexKey: 'shape_pt_sequence' },
   transfers: { firstIndexKey: 'from_stop_id', secondIndexKey: 'to_stop_id' },
-  pathways: { indexKey: 'pathway_id'},
+  pathways: { indexKey: 'pathway_id' },
   feed_info: { singleton: true },
 };
 
