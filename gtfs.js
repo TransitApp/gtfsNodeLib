@@ -1657,7 +1657,7 @@ class Gtfs {
    * @return {Object}            Pathway object
    */
   getPathwayWithPathwayId(pathwayId) {
-    return getters.getItemWithIndexes(pathwayId, 'pathways', this);
+    return getters.getItemWithIndex(pathwayId, 'pathways', this);
   }
 
   /**
