@@ -1651,7 +1651,7 @@ class Gtfs {
   getIndexedPathways() { return getIndexedTable(this, 'pathways'); }
 
   /**
-   * Get a pathway using its indexes: the fromStopId and the toStopId.
+   * Get a pathway using its index: pathwayId.
    *
    * @param  {string} pathwayId   First index of the pathway
    * @return {Object}            Pathway object
