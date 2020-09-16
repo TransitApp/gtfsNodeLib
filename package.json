@@ -27,7 +27,7 @@
     "async": "2.6.0",
     "debug": "3.1.0",
     "fs-extra": "5.0.0",
-    "papaparse": "^4.6.3"
+    "papaparse": "^5.2.0"
   },
   "jshintConfig": {
     "esversion": 6,
